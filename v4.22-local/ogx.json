@@ -1,0 +1,150 @@
+{
+  "description": "OGX is the Schema for the ogxs API.",
+  "type": "object",
+  "properties": {
+    "apiVersion": {
+      "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+      "type": "string"
+    },
+    "kind": {
+      "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+      "type": "string"
+    },
+    "metadata": {
+      "description": "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta"
+    },
+    "spec": {
+      "description": "OGXSpec defines the desired state of OGX.\n\nThe full module-facing spec surface is added in later tasks. This initial scaffold\npreserves the ODH-facing kind/GVK and status contract without guessing operand-level\nconfiguration prematurely.",
+      "type": "object",
+      "properties": {
+        "managementState": {
+          "description": "ManagementState controls whether the operator actively manages the\ncomponent (Managed) or removes it (Removed).",
+          "type": "string",
+          "enum": [
+            "Managed",
+            "Removed"
+          ]
+        }
+      }
+    },
+    "status": {
+      "description": "OGXStatus defines the observed state of OGX.",
+      "type": "object",
+      "properties": {
+        "conditions": {
+          "description": "Conditions is the set of condition observations for this module.",
+          "type": "array",
+          "items": {
+            "description": "Condition represents an observation of a module's state at a point in time.\nModule controllers set conditions to communicate health signals to the\norchestrator and to human operators.",
+            "type": "object",
+            "required": [
+              "lastTransitionTime",
+              "status",
+              "type"
+            ],
+            "properties": {
+              "lastTransitionTime": {
+                "description": "LastTransitionTime is the last time the condition transitioned from one\nstatus to another.",
+                "type": "string",
+                "format": "date-time"
+              },
+              "message": {
+                "description": "Message is a human-readable description providing details about the\ncondition's last transition.",
+                "type": "string"
+              },
+              "observedGeneration": {
+                "description": "ObservedGeneration is the .metadata.generation of the resource that\nthe condition was set based upon. If this does not match the resource's\ncurrent generation, the condition is likely stale.",
+                "type": "integer",
+                "format": "int64",
+                "minimum": 0
+              },
+              "reason": {
+                "description": "Reason is a programmatic, one-word CamelCase identifier for the\ncondition's last transition, suitable for machine consumption.",
+                "type": "string"
+              },
+              "severity": {
+                "description": "Severity indicates whether this condition represents an error or is\npurely informational. Empty string (default) indicates error severity.",
+                "type": "string"
+              },
+              "status": {
+                "description": "Status is the status of the condition (True, False, Unknown).",
+                "type": "string"
+              },
+              "type": {
+                "description": "Type is the condition type, e.g. ConditionTypeReady, ConditionTypeDegraded.",
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "x-kubernetes-list-type": "atomic"
+        },
+        "distribution": {
+          "description": "Distribution reports the platform context the module is currently aligned with.",
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        },
+        "observedGeneration": {
+          "description": "ObservedGeneration is the most recent .metadata.generation observed\nby the controller. It allows consumers to determine whether the\ncontroller has processed the latest spec changes.",
+          "type": "integer",
+          "format": "int64"
+        },
+        "phase": {
+          "description": "Phase is the top-level lifecycle phase of the module.",
+          "type": "string"
+        },
+        "releases": {
+          "description": "Releases is the list of deployed component releases.",
+          "type": "array",
+          "items": {
+            "description": "ComponentRelease describes a single software component's release metadata.",
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "description": "Name is the component name, used as the merge key in lists.",
+                "type": "string"
+              },
+              "repoUrl": {
+                "description": "RepoURL is the source repository URL for this component release.",
+                "type": "string"
+              },
+              "version": {
+                "description": "Version is the semantic version of the component.",
+                "type": "string"
+              }
+            }
+          },
+          "x-kubernetes-list-map-keys": [
+            "name"
+          ],
+          "x-kubernetes-list-type": "map"
+        }
+      }
+    }
+  },
+  "x-kubernetes-group-version-kind": [
+    {
+      "group": "components.platform.opendatahub.io",
+      "kind": "OGX",
+      "version": "v1alpha1"
+    }
+  ],
+  "x-kubernetes-validations": [
+    {
+      "message": "OGX name must be default-ogx",
+      "rule": "self.metadata.name == 'default-ogx'"
+    }
+  ],
+  "$schema": "http://json-schema.org/schema#"
+}

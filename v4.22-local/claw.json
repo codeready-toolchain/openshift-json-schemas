@@ -1,0 +1,1075 @@
+{
+  "description": "Claw is the Schema for the claws API",
+  "type": "object",
+  "properties": {
+    "apiVersion": {
+      "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+      "type": "string"
+    },
+    "kind": {
+      "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+      "type": "string"
+    },
+    "metadata": {
+      "description": "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta"
+    },
+    "spec": {
+      "description": "ClawSpec defines the desired state of Claw",
+      "type": "object",
+      "properties": {
+        "auth": {
+          "description": "Auth configures gateway authentication. Defaults to token-based\nauthentication with device pairing disabled. Set mode to \"password\" for\nshared-password access, or set disableDevicePairing to false to enable\ndevice pairing.",
+          "type": "object",
+          "properties": {
+            "disableDevicePairing": {
+              "description": "DisableDevicePairing disables browser device identity checks\n(maps to gateway.controlUi.dangerouslyDisableDeviceAuth upstream).\nDefaults to true (device pairing is disabled by default).\nSet to false to enable device pairing.",
+              "type": "boolean"
+            },
+            "mode": {
+              "description": "Mode selects the authentication mechanism: \"token\" (default) uses an\nauto-generated token, \"password\" uses a shared password from a Secret.",
+              "type": "string",
+              "enum": [
+                "token",
+                "password"
+              ]
+            },
+            "passwordSecretRef": {
+              "description": "PasswordSecretRef references a Secret key holding the shared password.\nRequired when mode is \"password\".",
+              "type": "object",
+              "required": [
+                "key",
+                "name"
+              ],
+              "properties": {
+                "key": {
+                  "description": "Key is the key in the Secret's data map",
+                  "type": "string",
+                  "minLength": 1
+                },
+                "name": {
+                  "description": "Name is the name of the Secret",
+                  "type": "string",
+                  "minLength": 1
+                },
+                "role": {
+                  "description": "Role distinguishes multiple secrets for the same credential.\nRequired when multiple secretRef entries are present (e.g., Slack botToken/appToken).",
+                  "type": "string",
+                  "maxLength": 63
+                }
+              }
+            }
+          },
+          "x-kubernetes-validations": [
+            {
+              "message": "passwordSecretRef is required when mode is password",
+              "rule": "self.mode != 'password' || has(self.passwordSecretRef)"
+            }
+          ]
+        },
+        "config": {
+          "description": "Config provides user-supplied OpenClaw configuration and merge behavior.",
+          "type": "object",
+          "properties": {
+            "mergeMode": {
+              "description": "MergeMode controls how operator config is applied on pod start.\n\"merge\" (default) deep-merges operator settings into the existing\nuser config, preserving user-owned keys. \"overwrite\" fully replaces\nthe config on every pod start. \"seedOnly\" seeds the config once on\nfirst boot, then leaves it untouched except for a narrow,\nalways-enforced infrastructure/credential subset. A cluster admin may\nrestrict which modes are allowed via ClawOperatorConfig.",
+              "type": "string"
+            },
+            "raw": {
+              "description": "Raw is inline openclaw.json configuration as arbitrary JSON.\nKeys set here are merged into operator.json before the enrichment\npipeline runs. User-set keys take precedence over operator defaults\nfor non-security-critical settings.",
+              "x-kubernetes-preserve-unknown-fields": true
+            }
+          }
+        },
+        "credentials": {
+          "description": "Credentials configures proxy credential injection per domain.",
+          "type": "array",
+          "items": {
+            "description": "CredentialSpec defines a single credential entry for proxy injection.",
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "allowedPaths": {
+                "description": "AllowedPaths restricts which URL paths the proxy permits for this domain.\nEach entry is a path prefix (e.g., \"/v1/api/\"). If empty, all paths are allowed.",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "apiKey": {
+                "description": "APIKey configures custom header injection. Required when type is \"apiKey\".",
+                "type": "object",
+                "required": [
+                  "header"
+                ],
+                "properties": {
+                  "header": {
+                    "description": "Header name where the API key is injected (e.g., \"x-goog-api-key\", \"x-api-key\")",
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "valuePrefix": {
+                    "description": "ValuePrefix is prepended to the secret value before injection.\nExamples: \"Bot \" (Discord), \"Basic \" (pre-encoded basic auth).",
+                    "type": "string"
+                  }
+                }
+              },
+              "channel": {
+                "description": "Channel declares this credential as a messaging channel integration.\nWhen set, the operator enables the channel in OpenClaw's config and\ninfers proxy defaults (type, domain, injection config, companion routes).\nKnown values: telegram, discord, slack, whatsapp.\nMutually exclusive with provider.",
+                "type": "string"
+              },
+              "channelConfig": {
+                "description": "ChannelConfig is opaque JSON deep-merged into the channel's config block\nin operator.json. Use for channel-specific settings (dmPolicy, allowFrom, etc.).",
+                "x-kubernetes-preserve-unknown-fields": true
+              },
+              "defaultHeaders": {
+                "description": "DefaultHeaders are injected on every proxied request for this credential,\nin addition to the credential itself (e.g., \"anthropic-version: 2023-06-01\").",
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "domain": {
+                "description": "Domain the proxy matches against the request Host header.\nExact match: \"api.github.com\". Suffix match: \".googleapis.com\" (leading dot).\nOptional for known providers and channels \u2014 the operator infers the default domain.",
+                "type": "string"
+              },
+              "gcp": {
+                "description": "GCP configures GCP service account credential injection. Required when type is \"gcp\".",
+                "type": "object",
+                "required": [
+                  "location",
+                  "project"
+                ],
+                "properties": {
+                  "location": {
+                    "description": "Location is the GCP region (e.g., us-central1)",
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "project": {
+                    "description": "Project is the GCP project ID",
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "name": {
+                "description": "Name uniquely identifies this credential entry.",
+                "type": "string",
+                "minLength": 1
+              },
+              "oauth2": {
+                "description": "OAuth2 configures client credentials token exchange. Required when type is \"oauth2\".",
+                "type": "object",
+                "required": [
+                  "clientID",
+                  "tokenURL"
+                ],
+                "properties": {
+                  "clientID": {
+                    "description": "ClientID for the OAuth2 client credentials flow",
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "scopes": {
+                    "description": "Scopes requested during token exchange",
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "tokenURL": {
+                    "description": "TokenURL is the OAuth2 token endpoint",
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "pathToken": {
+                "description": "PathToken configures URL path token injection. Required when type is \"pathToken\".",
+                "type": "object",
+                "required": [
+                  "prefix"
+                ],
+                "properties": {
+                  "prefix": {
+                    "description": "Prefix is prepended before the token in the URL path (e.g., \"/bot\" for Telegram)",
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "provider": {
+                "description": "Provider maps this credential to an OpenClaw LLM provider (e.g., \"google\", \"anthropic\", \"openai\", \"openrouter\").\nWhen set, the controller configures gateway routing and generates the provider entry in openclaw.json.\nMutually exclusive with channel.",
+                "type": "string"
+              },
+              "secretRef": {
+                "description": "SecretRef references Kubernetes Secrets holding credential values.\nFor single-secret credentials, use a one-element array.\nFor multi-secret channels (e.g., Slack), use role to distinguish entries.\nNot required for type \"none\" (proxy allowlist, no auth) or channels that use\nnon-secret auth (e.g., WhatsApp QR pairing).",
+                "type": "array",
+                "items": {
+                  "description": "SecretRefEntry references a specific key in a Secret.",
+                  "type": "object",
+                  "required": [
+                    "key",
+                    "name"
+                  ],
+                  "properties": {
+                    "key": {
+                      "description": "Key is the key in the Secret's data map",
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "name": {
+                      "description": "Name is the name of the Secret",
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "role": {
+                      "description": "Role distinguishes multiple secrets for the same credential.\nRequired when multiple secretRef entries are present (e.g., Slack botToken/appToken).",
+                      "type": "string",
+                      "maxLength": 63
+                    }
+                  }
+                }
+              },
+              "type": {
+                "description": "Type selects the credential injection mechanism.\nOptional when channel is set or provider is a known provider \u2014 the operator infers\nthe type from channel or provider defaults.",
+                "type": "string",
+                "enum": [
+                  "apiKey",
+                  "bearer",
+                  "gcp",
+                  "pathToken",
+                  "oauth2",
+                  "none",
+                  "kubernetes"
+                ]
+              }
+            },
+            "x-kubernetes-validations": [
+              {
+                "message": "type is required (inferred only for known providers: google, anthropic, openai, xai, openrouter)",
+                "rule": "has(self.type) || has(self.channel) || (has(self.provider) && self.provider in ['google', 'anthropic', 'openai', 'xai', 'openrouter'])"
+              },
+              {
+                "message": "provider and channel are mutually exclusive",
+                "rule": "!has(self.provider) || !has(self.channel)"
+              },
+              {
+                "message": "secretRef is required unless type is none or channel is set",
+                "rule": "has(self.channel) || (has(self.type) && self.type == 'none') || has(self.secretRef)"
+              },
+              {
+                "message": "apiKey config is required when type is apiKey without inferred defaults",
+                "rule": "!has(self.type) || self.type != 'apiKey' || has(self.apiKey) || (has(self.provider) && self.provider in ['google', 'anthropic']) || has(self.channel)"
+              },
+              {
+                "message": "gcp config is required when type is gcp without inferred defaults",
+                "rule": "!has(self.type) || self.type != 'gcp' || has(self.gcp) || has(self.channel)"
+              },
+              {
+                "message": "pathToken config is required when type is pathToken without inferred defaults",
+                "rule": "!has(self.type) || self.type != 'pathToken' || has(self.pathToken) || has(self.channel)"
+              },
+              {
+                "message": "oauth2 config is required when type is oauth2 without inferred defaults",
+                "rule": "!has(self.type) || self.type != 'oauth2' || has(self.oauth2) || has(self.channel)"
+              }
+            ]
+          }
+        },
+        "customProviders": {
+          "description": "CustomProviders declares custom OpenAI-compatible model providers.\nEach entry generates a models.providers entry and registers its models\nin the model picker. The referenced credential handles proxy routing.",
+          "type": "array",
+          "items": {
+            "description": "CustomProviderSpec defines a custom OpenAI-compatible model provider.",
+            "type": "object",
+            "required": [
+              "baseUrl",
+              "credentialRef",
+              "models",
+              "name"
+            ],
+            "properties": {
+              "api": {
+                "description": "API selects the wire format / request adapter OpenClaw uses when talking\nto this provider. Defaults to \"openai-completions\" (standard /v1/chat/completions).",
+                "type": "string"
+              },
+              "baseUrl": {
+                "description": "BaseUrl is the full base URL for the OpenAI-compatible API endpoint,\nincluding any path prefix (e.g., \"https://llm.mycompany.com/v1\").",
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^https?://"
+              },
+              "credentialRef": {
+                "description": "CredentialRef is the name of a credential in spec.credentials that\nhandles proxy routing and authentication for this provider's domain.\nThe referenced credential does not need provider set \u2014 this field\nestablishes the linkage.",
+                "type": "string",
+                "minLength": 1
+              },
+              "models": {
+                "description": "Models lists the models available on this endpoint.\nEach model is registered in agents.defaults.models with the provider\nname prefix (e.g., \"my-vllm/qwen3-14b\").",
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "description": "CustomModelEntry defines a single model on a custom provider.",
+                  "type": "object",
+                  "required": [
+                    "name"
+                  ],
+                  "properties": {
+                    "alias": {
+                      "description": "Alias is the human-friendly display name shown in the model picker.",
+                      "type": "string"
+                    },
+                    "name": {
+                      "description": "Name is the model identifier as the endpoint knows it (e.g., \"qwen3-14b\").",
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                }
+              },
+              "name": {
+                "description": "Name is the provider key used in models.providers and as the model prefix\n(e.g., \"my-vllm\" -> models are referenced as \"my-vllm/model-name\").",
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^[a-z][a-z0-9-]*$"
+              }
+            }
+          },
+          "x-kubernetes-list-map-keys": [
+            "name"
+          ],
+          "x-kubernetes-list-type": "map"
+        },
+        "idle": {
+          "description": "Idle, when set to true, instructs the operator to scale all managed\nDeployments to zero replicas. Set to false (or omit) to run normally.",
+          "type": "boolean"
+        },
+        "image": {
+          "description": "Image is the full container image reference for the OpenClaw gateway\n(e.g. \"ghcr.io/openclaw/openclaw:2026.7.1-2\"). Used for init-volume,\ninit-config, and gateway containers.",
+          "type": "string"
+        },
+        "mcpServers": {
+          "description": "McpServers declares MCP servers injected into OpenClaw's config.\nMap keys are server names as they appear in the mcp.servers config.",
+          "type": "object",
+          "additionalProperties": {
+            "description": "McpServerSpec defines an MCP server the operator injects into OpenClaw's config.",
+            "type": "object",
+            "properties": {
+              "args": {
+                "description": "Args are command-line arguments for the stdio server.",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "command": {
+                "description": "Command is the executable for a stdio MCP server.",
+                "type": "string"
+              },
+              "credentialRef": {
+                "description": "CredentialRef is the name of a credential in spec.credentials that\nhandles proxy routing and authentication for this MCP server's domain.\nOnly valid for HTTP MCP servers (url). The proxy injects credentials\nso the gateway never sees raw tokens.",
+                "type": "string"
+              },
+              "env": {
+                "description": "Env are plain environment variables passed to the stdio server process\nand written into the MCP server config in operator.json.\nUse for non-secret values and tier-2 placeholder tokens.",
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "envFrom": {
+                "description": "EnvFrom are secret-backed environment variables mounted on the gateway\ncontainer and inherited by the stdio server subprocess (tier 3).\nUse only when the proxy-placeholder pattern (tier 2) is not viable.",
+                "type": "array",
+                "items": {
+                  "description": "McpEnvFromSecret maps a Kubernetes Secret key to an environment variable\non the gateway container for tier 3 MCP secret injection.",
+                  "type": "object",
+                  "required": [
+                    "name",
+                    "secretRef"
+                  ],
+                  "properties": {
+                    "name": {
+                      "description": "Name is the environment variable name.",
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "secretRef": {
+                      "description": "SecretRef references a key in a Kubernetes Secret.",
+                      "type": "object",
+                      "required": [
+                        "key",
+                        "name"
+                      ],
+                      "properties": {
+                        "key": {
+                          "description": "Key is the key in the Secret's data map",
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "name": {
+                          "description": "Name is the name of the Secret",
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "role": {
+                          "description": "Role distinguishes multiple secrets for the same credential.\nRequired when multiple secretRef entries are present (e.g., Slack botToken/appToken).",
+                          "type": "string",
+                          "maxLength": 63
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "transport": {
+                "description": "Transport selects the HTTP transport type (\"streamable-http\" or \"sse\").\nOnly valid when url is set.",
+                "type": "string",
+                "enum": [
+                  "streamable-http",
+                  "sse"
+                ]
+              },
+              "url": {
+                "description": "URL is the endpoint for an HTTP MCP server.",
+                "type": "string"
+              }
+            },
+            "x-kubernetes-validations": [
+              {
+                "message": "either command (stdio) or url (HTTP) must be set",
+                "rule": "has(self.command) || has(self.url)"
+              },
+              {
+                "message": "command and url are mutually exclusive",
+                "rule": "!has(self.command) || !has(self.url)"
+              },
+              {
+                "message": "envFrom is only allowed for stdio MCP servers (command), not HTTP (url)",
+                "rule": "!has(self.url) || !has(self.envFrom) || size(self.envFrom) == 0"
+              },
+              {
+                "message": "transport is only allowed for HTTP MCP servers (url)",
+                "rule": "!has(self.transport) || has(self.url)"
+              },
+              {
+                "message": "credentialRef is only allowed for HTTP MCP servers (url)",
+                "rule": "!has(self.credentialRef) || has(self.url)"
+              }
+            ]
+          }
+        },
+        "metrics": {
+          "description": "Metrics configures Prometheus metrics collection via an OTel Collector sidecar.",
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "description": "Enabled activates the OTel Collector sidecar and diagnostics.otel.metrics\nconfig injection.",
+              "type": "boolean"
+            },
+            "port": {
+              "description": "Port for the Prometheus metrics endpoint on the OTel Collector sidecar.\nDefault: 9464.",
+              "type": "integer",
+              "format": "int32",
+              "maximum": 65535,
+              "minimum": 1
+            },
+            "serviceMonitor": {
+              "description": "ServiceMonitor configures Prometheus Operator ServiceMonitor creation.",
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "description": "Enabled controls whether a ServiceMonitor is created. Default: true\n(when metrics.enabled is true).",
+                  "type": "boolean"
+                },
+                "interval": {
+                  "description": "Interval is the Prometheus scrape interval. Default: \"30s\".",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "network": {
+          "description": "Network configures network behavior for the gateway pod.\nControls in-cluster proxy bypass and additional egress rules.\nMCP server egress rules are auto-generated from spec.mcpServers URLs.",
+          "type": "object",
+          "properties": {
+            "additionalEgress": {
+              "description": "AdditionalEgress appends raw NetworkPolicy egress rules to the\ngateway's egress policy for targets the operator can't auto-detect:\ntracing collectors, databases, webhooks, etc.\nRules are appended to {instance}-egress.",
+              "type": "array",
+              "items": {
+                "description": "NetworkPolicyEgressRule describes a particular set of traffic that is allowed out of pods\nmatched by a NetworkPolicySpec's podSelector. The traffic must match both ports and to.\nThis type is beta-level in 1.8",
+                "type": "object",
+                "properties": {
+                  "ports": {
+                    "description": "ports is a list of destination ports for outgoing traffic.\nEach item in this list is combined using a logical OR. If this field is\nempty or missing, this rule matches all ports (traffic not restricted by port).\nIf this field is present and contains at least one item, then this rule allows\ntraffic only if the traffic matches at least one port in the list.",
+                    "type": "array",
+                    "items": {
+                      "description": "NetworkPolicyPort describes a port to allow traffic on",
+                      "type": "object",
+                      "properties": {
+                        "endPort": {
+                          "description": "endPort indicates that the range of ports from port to endPort if set, inclusive,\nshould be allowed by the policy. This field cannot be defined if the port field\nis not defined or if the port field is defined as a named (string) port.\nThe endPort must be equal or greater than port.",
+                          "type": "integer",
+                          "format": "int32"
+                        },
+                        "port": {
+                          "description": "port represents the port on the given protocol. This can either be a numerical or named\nport on a pod. If this field is not provided, this matches all port names and\nnumbers.\nIf present, only traffic on the specified protocol AND port will be matched.",
+                          "x-kubernetes-int-or-string": true
+                        },
+                        "protocol": {
+                          "description": "protocol represents the protocol (TCP, UDP, or SCTP) which traffic must match.\nIf not specified, this field defaults to TCP.",
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "x-kubernetes-list-type": "atomic"
+                  },
+                  "to": {
+                    "description": "to is a list of destinations for outgoing traffic of pods selected for this rule.\nItems in this list are combined using a logical OR operation. If this field is\nempty or missing, this rule matches all destinations (traffic not restricted by\ndestination). If this field is present and contains at least one item, this rule\nallows traffic only if the traffic matches at least one item in the to list.",
+                    "type": "array",
+                    "items": {
+                      "description": "NetworkPolicyPeer describes a peer to allow traffic to/from. Only certain combinations of\nfields are allowed",
+                      "type": "object",
+                      "properties": {
+                        "ipBlock": {
+                          "description": "ipBlock defines policy on a particular IPBlock. If this field is set then\nneither of the other fields can be.",
+                          "type": "object",
+                          "required": [
+                            "cidr"
+                          ],
+                          "properties": {
+                            "cidr": {
+                              "description": "cidr is a string representing the IPBlock\nValid examples are \"192.168.1.0/24\" or \"2001:db8::/64\"",
+                              "type": "string"
+                            },
+                            "except": {
+                              "description": "except is a slice of CIDRs that should not be included within an IPBlock\nValid examples are \"192.168.1.0/24\" or \"2001:db8::/64\"\nExcept values will be rejected if they are outside the cidr range",
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "x-kubernetes-list-type": "atomic"
+                            }
+                          }
+                        },
+                        "namespaceSelector": {
+                          "description": "namespaceSelector selects namespaces using cluster-scoped labels. This field follows\nstandard label selector semantics; if present but empty, it selects all namespaces.\n\nIf podSelector is also set, then the NetworkPolicyPeer as a whole selects\nthe pods matching podSelector in the namespaces selected by namespaceSelector.\nOtherwise it selects all pods in the namespaces selected by namespaceSelector.",
+                          "type": "object",
+                          "properties": {
+                            "matchExpressions": {
+                              "description": "matchExpressions is a list of label selector requirements. The requirements are ANDed.",
+                              "type": "array",
+                              "items": {
+                                "description": "A label selector requirement is a selector that contains values, a key, and an operator that\nrelates the key and values.",
+                                "type": "object",
+                                "required": [
+                                  "key",
+                                  "operator"
+                                ],
+                                "properties": {
+                                  "key": {
+                                    "description": "key is the label key that the selector applies to.",
+                                    "type": "string"
+                                  },
+                                  "operator": {
+                                    "description": "operator represents a key's relationship to a set of values.\nValid operators are In, NotIn, Exists and DoesNotExist.",
+                                    "type": "string"
+                                  },
+                                  "values": {
+                                    "description": "values is an array of string values. If the operator is In or NotIn,\nthe values array must be non-empty. If the operator is Exists or DoesNotExist,\nthe values array must be empty. This array is replaced during a strategic\nmerge patch.",
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "x-kubernetes-list-type": "atomic"
+                                  }
+                                }
+                              },
+                              "x-kubernetes-list-type": "atomic"
+                            },
+                            "matchLabels": {
+                              "description": "matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels\nmap is equivalent to an element of matchExpressions, whose key field is \"key\", the\noperator is \"In\", and the values array contains only \"value\". The requirements are ANDed.",
+                              "type": "object",
+                              "additionalProperties": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "x-kubernetes-map-type": "atomic"
+                        },
+                        "podSelector": {
+                          "description": "podSelector is a label selector which selects pods. This field follows standard label\nselector semantics; if present but empty, it selects all pods.\n\nIf namespaceSelector is also set, then the NetworkPolicyPeer as a whole selects\nthe pods matching podSelector in the Namespaces selected by NamespaceSelector.\nOtherwise it selects the pods matching podSelector in the policy's own namespace.",
+                          "type": "object",
+                          "properties": {
+                            "matchExpressions": {
+                              "description": "matchExpressions is a list of label selector requirements. The requirements are ANDed.",
+                              "type": "array",
+                              "items": {
+                                "description": "A label selector requirement is a selector that contains values, a key, and an operator that\nrelates the key and values.",
+                                "type": "object",
+                                "required": [
+                                  "key",
+                                  "operator"
+                                ],
+                                "properties": {
+                                  "key": {
+                                    "description": "key is the label key that the selector applies to.",
+                                    "type": "string"
+                                  },
+                                  "operator": {
+                                    "description": "operator represents a key's relationship to a set of values.\nValid operators are In, NotIn, Exists and DoesNotExist.",
+                                    "type": "string"
+                                  },
+                                  "values": {
+                                    "description": "values is an array of string values. If the operator is In or NotIn,\nthe values array must be non-empty. If the operator is Exists or DoesNotExist,\nthe values array must be empty. This array is replaced during a strategic\nmerge patch.",
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "x-kubernetes-list-type": "atomic"
+                                  }
+                                }
+                              },
+                              "x-kubernetes-list-type": "atomic"
+                            },
+                            "matchLabels": {
+                              "description": "matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels\nmap is equivalent to an element of matchExpressions, whose key field is \"key\", the\noperator is \"In\", and the values array contains only \"value\". The requirements are ANDed.",
+                              "type": "object",
+                              "additionalProperties": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "x-kubernetes-map-type": "atomic"
+                        }
+                      }
+                    },
+                    "x-kubernetes-list-type": "atomic"
+                  }
+                }
+              }
+            },
+            "inClusterBypass": {
+              "description": "InClusterBypass controls whether the gateway pod can directly reach\nin-cluster Kubernetes services, bypassing the MITM proxy.\nWhen false (default), all egress goes through the proxy.\nWhen true, .svc and .svc.cluster.local traffic bypasses the proxy.",
+              "type": "boolean"
+            }
+          }
+        },
+        "plugins": {
+          "description": "Plugins lists OpenClaw plugins to install via an init container before\nthe gateway starts. Each entry is a package name (e.g. \"@openclaw/matrix\").\nThe operator runs `openclaw plugins install <pkg>` for each entry.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "resources": {
+          "description": "Resources overrides the compute resources for the gateway container.\nEach requests/limits key is applied on its own; keys left unset keep the\nmanifest defaults (requests 768Mi/100m, limits 4Gi/2), so raising one\nvalue never forces the other three to be restated.\n\nThe memory limit is the one most likely to need raising: context-heavy\nturns that synthesize over a large corpus can exceed the 4Gi default and\nare OOMKilled by the cgroup, which surfaces as a silent SIGKILL rather\nthan an error the agent can report. CPU is worth raising on busy\ninstances, where throttling at the 2-core limit shows up as slow turns\nrather than failures.",
+          "type": "object",
+          "properties": {
+            "limits": {
+              "description": "Limits is the maximum compute resources allowed for the gateway\ncontainer. Keys set here override the manifest defaults individually.",
+              "type": "object",
+              "additionalProperties": {
+                "pattern": "^(\\+|-)?(([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\\+|-)?(([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))))?$",
+                "x-kubernetes-int-or-string": true
+              }
+            },
+            "requests": {
+              "description": "Requests is the minimum compute resources required by the gateway\ncontainer. Keys set here override the manifest defaults individually.",
+              "type": "object",
+              "additionalProperties": {
+                "pattern": "^(\\+|-)?(([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\\+|-)?(([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))))?$",
+                "x-kubernetes-int-or-string": true
+              }
+            }
+          }
+        },
+        "serviceAccountName": {
+          "description": "ServiceAccountName sets the Kubernetes ServiceAccount on the gateway\npod. When set, automountServiceAccountToken is enabled so the SA token\nis projected into the pod for Workload Identity (AWS IRSA, GCP WI,\nAzure WI). When omitted, the default ServiceAccount is used with no\ntoken mounted. The SA must be pre-created by the cluster admin.",
+          "type": "string"
+        },
+        "skills": {
+          "description": "Skills maps skill names to SKILL.md content. Each entry creates\nworkspace/skills/<name>/SKILL.md, overwritten on every pod restart\n(operator-managed).",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "webFetch": {
+          "description": "WebFetch enables the web_fetch tool for arbitrary URL fetching.\nFetched URLs are gated by the proxy allowlist \u2014 only domains\npermitted by credentials, search providers, or builtins are reachable.",
+          "type": "object",
+          "required": [
+            "enabled"
+          ],
+          "properties": {
+            "enabled": {
+              "description": "Enabled activates the web_fetch tool. Fetched URLs are gated by\nthe proxy allowlist.",
+              "type": "boolean"
+            }
+          }
+        },
+        "webSearch": {
+          "description": "WebSearch configures the web search provider for the OpenClaw agent.",
+          "type": "object",
+          "required": [
+            "provider"
+          ],
+          "properties": {
+            "config": {
+              "description": "Config is provider-specific configuration merged into\nplugins.entries.<provider>.config.webSearch in operator.json.\nUse for provider-specific tuning (mode, maxResults, etc.).",
+              "x-kubernetes-preserve-unknown-fields": true
+            },
+            "provider": {
+              "description": "Provider selects the web search provider.\nKnown values: brave, tavily, duckduckgo, gemini.",
+              "type": "string",
+              "minLength": 1
+            },
+            "secretRef": {
+              "description": "SecretRef references a Secret key holding the search API key.\nRequired for API-keyed providers (brave, tavily).\nNot needed for key-free (duckduckgo) or LLM-as-search (gemini).",
+              "type": "object",
+              "required": [
+                "key",
+                "name"
+              ],
+              "properties": {
+                "key": {
+                  "description": "Key is the key in the Secret's data map",
+                  "type": "string",
+                  "minLength": 1
+                },
+                "name": {
+                  "description": "Name is the name of the Secret",
+                  "type": "string",
+                  "minLength": 1
+                },
+                "role": {
+                  "description": "Role distinguishes multiple secrets for the same credential.\nRequired when multiple secretRef entries are present (e.g., Slack botToken/appToken).",
+                  "type": "string",
+                  "maxLength": 63
+                }
+              }
+            }
+          },
+          "x-kubernetes-validations": [
+            {
+              "message": "secretRef is required for API-keyed search providers",
+              "rule": "self.provider in ['duckduckgo','gemini'] || has(self.secretRef)"
+            }
+          ]
+        },
+        "workspace": {
+          "description": "Workspace configures workspace file seeding and bootstrap behavior.\nFiles are seeded once (seedIfMissing) \u2014 user edits are preserved.",
+          "type": "object",
+          "properties": {
+            "configMapSources": {
+              "description": "ConfigMapSources seeds workspace files from ConfigMap keys.",
+              "type": "array",
+              "items": {
+                "description": "ConfigMapSource seeds workspace files from a ConfigMap.",
+                "type": "object",
+                "required": [
+                  "configMapRef",
+                  "items"
+                ],
+                "properties": {
+                  "configMapRef": {
+                    "description": "ConfigMapRef identifies the source ConfigMap (same namespace as the Claw CR).",
+                    "type": "object",
+                    "required": [
+                      "name"
+                    ],
+                    "properties": {
+                      "name": {
+                        "description": "Name of the ConfigMap.",
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  },
+                  "items": {
+                    "description": "Items maps specific ConfigMap keys to workspace paths.",
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "description": "ConfigMapItem maps a ConfigMap key to a workspace path.",
+                      "type": "object",
+                      "required": [
+                        "key",
+                        "path"
+                      ],
+                      "properties": {
+                        "key": {
+                          "description": "Key is the key in the ConfigMap's data map.",
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "mode": {
+                          "description": "Mode overrides the source-level mode for this item.",
+                          "type": "string",
+                          "enum": [
+                            "overwrite",
+                            "seedIfMissing"
+                          ]
+                        },
+                        "path": {
+                          "description": "Path is the workspace-relative target path.",
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  },
+                  "mode": {
+                    "description": "Mode controls seeding behavior for all items in this source.\nIndividual items can override this. Default: overwrite.\nIgnored when ReadOnly is true.",
+                    "type": "string",
+                    "enum": [
+                      "overwrite",
+                      "seedIfMissing"
+                    ]
+                  },
+                  "readOnly": {
+                    "description": "ReadOnly mounts all items directly into the workspace via\nread-only Kubernetes volume mounts instead of seeding them onto the PVC.\nThe OpenClaw process cannot modify or delete these files at runtime.",
+                    "type": "boolean"
+                  }
+                }
+              }
+            },
+            "files": {
+              "description": "Deprecated: use InlineSources instead. Retained for backward compatibility.\nThe controller normalizes Files entries to InlineSources with mode seedIfMissing.",
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "gitSources": {
+              "description": "GitSources seeds workspace files from Git repositories via HTTPS.",
+              "type": "array",
+              "items": {
+                "description": "GitSource seeds workspace files from a Git repository.",
+                "type": "object",
+                "required": [
+                  "items",
+                  "url"
+                ],
+                "properties": {
+                  "items": {
+                    "description": "Items maps specific repository file paths to workspace paths.",
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "description": "GitItem maps a file in a Git repository to a workspace path.",
+                      "type": "object",
+                      "required": [
+                        "path",
+                        "repoPath"
+                      ],
+                      "properties": {
+                        "mode": {
+                          "description": "Mode overrides the source-level mode for this item.",
+                          "type": "string",
+                          "enum": [
+                            "overwrite",
+                            "seedIfMissing"
+                          ]
+                        },
+                        "path": {
+                          "description": "Path is the workspace-relative target path.",
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "repoPath": {
+                          "description": "RepoPath is the path to a single file in the repository.",
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  },
+                  "mode": {
+                    "description": "Mode controls seeding behavior for all items in this source.\nIndividual items can override this. Default: overwrite.\nIgnored when ReadOnly is true.",
+                    "type": "string",
+                    "enum": [
+                      "overwrite",
+                      "seedIfMissing"
+                    ]
+                  },
+                  "readOnly": {
+                    "description": "ReadOnly mounts all items directly into the workspace via\nread-only Kubernetes volume mounts instead of seeding them onto the PVC.\nThe OpenClaw process cannot modify or delete these files at runtime.",
+                    "type": "boolean"
+                  },
+                  "ref": {
+                    "description": "Ref is the Git reference to check out: branch name, tag, or commit SHA.\nDefault: the repository's default branch.",
+                    "type": "string"
+                  },
+                  "secretRef": {
+                    "description": "SecretRef references a Secret holding an HTTPS personal access token\nfor private repository authentication.",
+                    "type": "object",
+                    "required": [
+                      "key",
+                      "name"
+                    ],
+                    "properties": {
+                      "key": {
+                        "description": "Key is the key in the Secret's data map",
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "name": {
+                        "description": "Name is the name of the Secret",
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "role": {
+                        "description": "Role distinguishes multiple secrets for the same credential.\nRequired when multiple secretRef entries are present (e.g., Slack botToken/appToken).",
+                        "type": "string",
+                        "maxLength": 63
+                      }
+                    }
+                  },
+                  "url": {
+                    "description": "URL is the HTTPS URL of the Git repository.",
+                    "type": "string",
+                    "minLength": 1,
+                    "pattern": "^https://"
+                  }
+                }
+              }
+            },
+            "inlineSources": {
+              "description": "InlineSources seeds workspace files from inline content.",
+              "type": "array",
+              "items": {
+                "description": "InlineSource defines a workspace file with inline content.",
+                "type": "object",
+                "required": [
+                  "content",
+                  "path"
+                ],
+                "properties": {
+                  "content": {
+                    "description": "Content is the inline file content.",
+                    "type": "string"
+                  },
+                  "mode": {
+                    "description": "Mode controls seeding behavior. Default: overwrite.\nIgnored when ReadOnly is true.",
+                    "type": "string",
+                    "enum": [
+                      "overwrite",
+                      "seedIfMissing"
+                    ]
+                  },
+                  "path": {
+                    "description": "Path is the workspace-relative file path (e.g., \"SOUL.md\", \"docs/guide.md\").",
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "readOnly": {
+                    "description": "ReadOnly mounts this file directly into the workspace via a\nread-only Kubernetes volume mount instead of seeding it onto the PVC.\nThe OpenClaw process cannot modify or delete the file at runtime.",
+                    "type": "boolean"
+                  }
+                }
+              }
+            },
+            "skipBootstrap": {
+              "description": "SkipBootstrap suppresses the OpenClaw first-run questionnaire.\nDefault: false.",
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "status": {
+      "description": "ClawStatus defines the observed state of Claw",
+      "type": "object",
+      "properties": {
+        "conditions": {
+          "description": "Conditions represent the latest available observations of the Claw's state",
+          "type": "array",
+          "items": {
+            "description": "Condition contains details for one aspect of the current state of this API Resource.",
+            "type": "object",
+            "required": [
+              "lastTransitionTime",
+              "message",
+              "reason",
+              "status",
+              "type"
+            ],
+            "properties": {
+              "lastTransitionTime": {
+                "description": "lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.",
+                "type": "string",
+                "format": "date-time"
+              },
+              "message": {
+                "description": "message is a human readable message indicating details about the transition.\nThis may be an empty string.",
+                "type": "string",
+                "maxLength": 32768
+              },
+              "observedGeneration": {
+                "description": "observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.",
+                "type": "integer",
+                "format": "int64",
+                "minimum": 0
+              },
+              "reason": {
+                "description": "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
+                "type": "string",
+                "maxLength": 1024,
+                "minLength": 1,
+                "pattern": "^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$"
+              },
+              "status": {
+                "description": "status of the condition, one of True, False, Unknown.",
+                "type": "string",
+                "enum": [
+                  "True",
+                  "False",
+                  "Unknown"
+                ]
+              },
+              "type": {
+                "description": "type of condition in CamelCase or in foo.example.com/CamelCase.",
+                "type": "string",
+                "maxLength": 316,
+                "pattern": "^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$"
+              }
+            }
+          },
+          "x-kubernetes-list-map-keys": [
+            "type"
+          ],
+          "x-kubernetes-list-type": "map"
+        },
+        "gatewayTokenSecretRef": {
+          "description": "GatewayTokenSecretRef is the name of the Secret containing the gateway authentication token",
+          "type": "string"
+        },
+        "gatewayURL": {
+          "description": "GatewayURL is the HTTPS URL for accessing the Claw gateway, including the auth token fragment when applicable",
+          "type": "string"
+        },
+        "image": {
+          "description": "Image is the resolved OpenClaw container image for this instance.\nMatches spec.image when set; otherwise reflects the operator default.",
+          "type": "string"
+        },
+        "url": {
+          "description": "Deprecated: Use GatewayURL instead. Will be removed in a future version.\nURL is the HTTPS URL for accessing the Claw instance",
+          "type": "string"
+        }
+      }
+    }
+  },
+  "x-kubernetes-group-version-kind": [
+    {
+      "group": "claw.sandbox.redhat.com",
+      "kind": "Claw",
+      "version": "v1alpha1"
+    }
+  ],
+  "$schema": "http://json-schema.org/schema#"
+}

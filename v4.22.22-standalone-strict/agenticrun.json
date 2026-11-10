@@ -1,0 +1,1347 @@
+{
+  "description": "AgenticRun represents a unit of work managed by the agentic platform.\nIt is the primary resource component teams and adapters interact with.\n\nA AgenticRun defines the workflow shape inline: which steps run and which\nagent handles each step. Analysis is always required. Omit execution\nand/or verification to skip those steps.\n\nExample \u2014 analysis only (advisory):\n\n\tapiVersion: agentic.openshift.io/v1alpha1\n\tkind: AgenticRun\n\tmetadata:\n\t  name: one-off-investigation\n\tspec:\n\t  request: \"Investigate why pod foo is crashlooping\"\n\t  tools:\n\t    skills:\n\t      - image: registry.redhat.io/acs/acs-agentic-skills:latest\n\t  analysis:\n\t    agent: smart\n\nExample \u2014 full remediation (analyze \u2192 execute \u2192 verify):\n\n\tapiVersion: agentic.openshift.io/v1alpha1\n\tkind: AgenticRun\n\tmetadata:\n\t  name: fix-nginx-cve-2024-1234\n\t  namespace: stackrox\n\tspec:\n\t  request: \"Fix CVE-2024-1234 in nginx:1.21\"\n\t  tools:\n\t    skills:\n\t      - image: registry.redhat.io/acs/acs-agentic-skills:latest\n\t    requiredSecrets:\n\t      - name: acs-api-token\n\t        mountAs:\n\t          type: EnvVar\n\t          envVar:\n\t            name: ACS_API_TOKEN\n\t  analysis:\n\t    agent: smart\n\t  execution:\n\t    agent: default\n\t  verification:\n\t    agent: fast",
+  "type": "object",
+  "required": [
+    "spec"
+  ],
+  "properties": {
+    "apiVersion": {
+      "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+      "type": "string"
+    },
+    "kind": {
+      "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+      "type": "string"
+    },
+    "metadata": {
+      "description": "ObjectMeta is metadata that all persisted resources must have, which includes all objects users must create.",
+      "type": "object",
+      "properties": {
+        "annotations": {
+          "description": "Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "creationTimestamp": {
+          "description": "Time is a wrapper around time.Time which supports correct marshaling to YAML and JSON.  Wrappers are provided for many of the factory methods that the time package offers.",
+          "type": "string",
+          "format": "date-time"
+        },
+        "deletionGracePeriodSeconds": {
+          "description": "Number of seconds allowed for this object to gracefully terminate before it will be removed from the system. Only set when deletionTimestamp is also set. May only be shortened. Read-only.",
+          "type": "integer",
+          "format": "int64"
+        },
+        "deletionTimestamp": {
+          "description": "Time is a wrapper around time.Time which supports correct marshaling to YAML and JSON.  Wrappers are provided for many of the factory methods that the time package offers.",
+          "type": "string",
+          "format": "date-time"
+        },
+        "finalizers": {
+          "description": "Must be empty before the object is deleted from the registry. Each entry is an identifier for the responsible component that will remove the entry from the list. If the deletionTimestamp of the object is non-nil, entries in this list can only be removed. Finalizers may be processed and removed in any order.  Order is NOT enforced because it introduces significant risk of stuck finalizers. finalizers is a shared field, any actor with permission can reorder it. If the finalizer list is processed in order, then this can lead to a situation in which the component responsible for the first finalizer in the list is waiting for a signal (field value, external system, or other) produced by a component responsible for a finalizer later in the list, resulting in a deadlock. Without enforced ordering finalizers are free to order amongst themselves and are not vulnerable to ordering changes in the list.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-kubernetes-list-type": "set",
+          "x-kubernetes-patch-strategy": "merge"
+        },
+        "generateName": {
+          "description": "GenerateName is an optional prefix, used by the server, to generate a unique name ONLY IF the Name field has not been provided. If this field is used, the name returned to the client will be different than the name passed. This value will also be combined with a unique suffix. The provided value has the same validation rules as the Name field, and may be truncated by the length of the suffix required to make the value unique on the server.\n\nIf this field is specified and the generated name exists, the server will return a 409.\n\nApplied only if Name is not specified. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#idempotency",
+          "type": "string"
+        },
+        "generation": {
+          "description": "A sequence number representing a specific generation of the desired state. Populated by the system. Read-only.",
+          "type": "integer",
+          "format": "int64"
+        },
+        "labels": {
+          "description": "Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "managedFields": {
+          "description": "ManagedFields maps workflow-id and version to the set of fields that are managed by that workflow. This is mostly for internal housekeeping, and users typically shouldn't need to set or understand this field. A workflow can be the user's name, a controller's name, or the name of a specific apply path like \"ci-cd\". The set of fields is always in the version that the workflow used when modifying the object.",
+          "type": "array",
+          "items": {
+            "description": "ManagedFieldsEntry is a workflow-id, a FieldSet and the group version of the resource that the fieldset applies to.",
+            "type": "object",
+            "properties": {
+              "apiVersion": {
+                "description": "APIVersion defines the version of this resource that this field set applies to. The format is \"group/version\" just like the top-level APIVersion field. It is necessary to track the version of a field set because it cannot be automatically converted.",
+                "type": "string"
+              },
+              "fieldsType": {
+                "description": "FieldsType is the discriminator for the different fields format and version. There is currently only one possible value: \"FieldsV1\"",
+                "type": "string"
+              },
+              "fieldsV1": {
+                "description": "FieldsV1 stores a set of fields in a data structure like a Trie, in JSON format.\n\nEach key is either a '.' representing the field itself, and will always map to an empty set, or a string representing a sub-field or item. The string will follow one of these four formats: 'f:<name>', where <name> is the name of a field in a struct, or key in a map 'v:<value>', where <value> is the exact json formatted value of a list item 'i:<index>', where <index> is position of a item in a list 'k:<keys>', where <keys> is a map of  a list item's key fields to their unique values If a key maps to an empty Fields value, the field that key represents is part of the set.\n\nThe exact format is defined in sigs.k8s.io/structured-merge-diff",
+                "type": "object"
+              },
+              "manager": {
+                "description": "Manager is an identifier of the workflow managing these fields.",
+                "type": "string"
+              },
+              "operation": {
+                "description": "Operation is the type of operation which lead to this ManagedFieldsEntry being created. The only valid values for this field are 'Apply' and 'Update'.",
+                "type": "string"
+              },
+              "subresource": {
+                "description": "Subresource is the name of the subresource used to update that object, or empty string if the object was updated through the main resource. The value of this field is used to distinguish between managers, even if they share the same name. For example, a status update will be distinct from a regular update using the same manager name. Note that the APIVersion field is not related to the Subresource field and it always corresponds to the version of the main resource.",
+                "type": "string"
+              },
+              "time": {
+                "description": "Time is a wrapper around time.Time which supports correct marshaling to YAML and JSON.  Wrappers are provided for many of the factory methods that the time package offers.",
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "additionalProperties": false
+          },
+          "x-kubernetes-list-type": "atomic"
+        },
+        "name": {
+          "description": "Name must be unique within a namespace. Is required when creating resources, although some resources may allow a client to request the generation of an appropriate name automatically. Name is primarily intended for creation idempotence and configuration definition. Cannot be updated. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#names",
+          "type": "string"
+        },
+        "namespace": {
+          "description": "Namespace defines the space within which each name must be unique. An empty namespace is equivalent to the \"default\" namespace, but \"default\" is the canonical representation. Not all objects are required to be scoped to a namespace - the value of this field for those objects will be empty.\n\nMust be a DNS_LABEL. Cannot be updated. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces",
+          "type": "string"
+        },
+        "ownerReferences": {
+          "description": "List of objects depended by this object. If ALL objects in the list have been deleted, this object will be garbage collected. If this object is managed by a controller, then an entry in this list will point to this controller, with the controller field set to true. There cannot be more than one managing controller.",
+          "type": "array",
+          "items": {
+            "description": "OwnerReference contains enough information to let you identify an owning object. An owning object must be in the same namespace as the dependent, or be cluster-scoped, so there is no namespace field.",
+            "type": "object",
+            "required": [
+              "apiVersion",
+              "kind",
+              "name",
+              "uid"
+            ],
+            "properties": {
+              "apiVersion": {
+                "description": "API version of the referent.",
+                "type": "string"
+              },
+              "blockOwnerDeletion": {
+                "description": "If true, AND if the owner has the \"foregroundDeletion\" finalizer, then the owner cannot be deleted from the key-value store until this reference is removed. See https://kubernetes.io/docs/concepts/architecture/garbage-collection/#foreground-deletion for how the garbage collector interacts with this field and enforces the foreground deletion. Defaults to false. To set this field, a user needs \"delete\" permission of the owner, otherwise 422 (Unprocessable Entity) will be returned.",
+                "type": "boolean"
+              },
+              "controller": {
+                "description": "If true, this reference points to the managing controller.",
+                "type": "boolean"
+              },
+              "kind": {
+                "description": "Kind of the referent. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+                "type": "string"
+              },
+              "name": {
+                "description": "Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#names",
+                "type": "string"
+              },
+              "uid": {
+                "description": "UID of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#uids",
+                "type": "string"
+              }
+            },
+            "x-kubernetes-map-type": "atomic",
+            "additionalProperties": false
+          },
+          "x-kubernetes-list-map-keys": [
+            "uid"
+          ],
+          "x-kubernetes-list-type": "map",
+          "x-kubernetes-patch-merge-key": "uid",
+          "x-kubernetes-patch-strategy": "merge"
+        },
+        "resourceVersion": {
+          "description": "An opaque value that represents the internal version of this object that can be used by clients to determine when objects have changed. May be used for optimistic concurrency, change detection, and the watch operation on a resource or set of resources. Clients must treat these values as opaque and passed unmodified back to the server. They may only be valid for a particular resource or set of resources.\n\nPopulated by the system. Read-only. Value must be treated as opaque by clients and . More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency",
+          "type": "string"
+        },
+        "selfLink": {
+          "description": "Deprecated: selfLink is a legacy read-only field that is no longer populated by the system.",
+          "type": "string"
+        },
+        "uid": {
+          "description": "UID is the unique in time and space value for this object. It is typically generated by the server on successful creation of a resource and is not allowed to change on PUT operations.\n\nPopulated by the system. Read-only. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#uids",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "spec": {
+      "description": "spec defines the desired state of AgenticRun.",
+      "type": "object",
+      "required": [
+        "analysis",
+        "request"
+      ],
+      "properties": {
+        "analysis": {
+          "description": "analysis defines the agent used for the analysis step.",
+          "type": "object",
+          "minProperties": 1,
+          "properties": {
+            "agent": {
+              "description": "agent is the name of the cluster-scoped Agent CR to use for this step.\nDefaults to \"default\" when omitted.",
+              "type": "string",
+              "maxLength": 253,
+              "minLength": 1,
+              "x-kubernetes-validations": [
+                {
+                  "message": "must be a valid DNS subdomain: lowercase alphanumeric characters, hyphens, and dots",
+                  "rule": "self.matches('^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$')"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "analysisOutput": {
+          "description": "analysisOutput configures the analysis step's structured output.\nThe mode field controls which built-in properties are included\n(Default: all; Minimal: only title). The schema field optionally\ndefines adapter-specific structured data injected as \"components\".\n\nWhen omitted, the analysis uses the full default schema with all\nbuilt-in properties and no custom components.\n\nImmutable: the output contract is fixed at creation.",
+          "type": "object",
+          "minProperties": 1,
+          "properties": {
+            "mode": {
+              "description": "mode controls which built-in properties the analysis output schema\nincludes. Default includes all built-in properties (diagnosis,\nremediation plan, summary, rbac, verification). Minimal includes only the\nbase structure (options array with title per option). Omit or set\nto \"Default\" for standard remediation workflows.",
+              "type": "string",
+              "enum": [
+                "Default",
+                "Minimal"
+              ]
+            },
+            "schema": {
+              "description": "schema is a JSON Schema injected as a required \"components\"\nproperty in each analysis output option. Use this to require\nadapter-specific structured data beyond the base analysis schema.",
+              "x-kubernetes-preserve-unknown-fields": true
+            }
+          },
+          "x-kubernetes-validations": [
+            {
+              "message": "schema is required when mode is Minimal",
+              "rule": "self.mode != 'Minimal' || has(self.schema)"
+            }
+          ],
+          "additionalProperties": false
+        },
+        "execution": {
+          "description": "execution defines the agent used for the execution step.\nOmit to skip execution (advisory/assisted patterns).",
+          "type": "object",
+          "minProperties": 1,
+          "properties": {
+            "agent": {
+              "description": "agent is the name of the cluster-scoped Agent CR to use for this step.\nDefaults to \"default\" when omitted.",
+              "type": "string",
+              "maxLength": 253,
+              "minLength": 1,
+              "x-kubernetes-validations": [
+                {
+                  "message": "must be a valid DNS subdomain: lowercase alphanumeric characters, hyphens, and dots",
+                  "rule": "self.matches('^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$')"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "request": {
+          "description": "request is the user's original request, alert description, or a\ndescription of what triggered this agentic run. This text is passed to\nthe analysis agent as the primary input.\n\nImmutable: AgenticRuns are run-to-completion (like Jobs). To change\nthe request, create a new AgenticRun. Use spec.revisionFeedback for\niterative feedback on an existing analysis.",
+          "type": "string",
+          "maxLength": 32768,
+          "minLength": 1,
+          "x-kubernetes-validations": [
+            {
+              "message": "request is immutable after creation",
+              "rule": "self == oldSelf"
+            }
+          ]
+        },
+        "revisionFeedback": {
+          "description": "revisionFeedback is the user's free-text feedback requesting changes\nto the analysis. Patching this field bumps metadata.generation, which\nthe operator detects (generation > observedGeneration) and triggers\nre-analysis with the feedback appended to the original request.\n\nMutable: this and terminalTTL below are the only mutable spec\nfields. All other spec fields are immutable via CEL rules.",
+          "type": "string",
+          "maxLength": 32768,
+          "minLength": 1
+        },
+        "targetCluster": {
+          "description": "targetCluster optionally references a spoke cluster by name.\nWhen set, the operator creates ephemeral service accounts and\nRBAC on the spoke cluster via the standing kubeconfig Secret\n(spoke-kubeconfig-{targetCluster}). When empty, the run\ntargets the local (hub) cluster.\n\nImmutable: the cluster target is fixed at creation.",
+          "type": "string",
+          "maxLength": 236,
+          "minLength": 1,
+          "x-kubernetes-validations": [
+            {
+              "message": "must be a valid DNS subdomain: lowercase alphanumeric characters, hyphens, and dots",
+              "rule": "self.matches('^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$')"
+            }
+          ]
+        },
+        "terminalTTL": {
+          "description": "terminalTTL requests cleanup after this many whole days in a terminal\nphase (Completed, Failed, Denied, Escalated, EmergencyStopped).\nThe operator caps this request at the cluster retention ceiling and\nrecords the actual deadline in status.deleteAfter. Omission uses the\ncluster ceiling. This field may be changed before the run first\nbecomes terminal, but not after terminalTime has been recorded.",
+          "type": "integer",
+          "format": "int32",
+          "minimum": 1
+        },
+        "tools": {
+          "description": "tools defines the tools available to every configured step: analysis,\nexecution, verification, and escalation. It includes skills images,\nMCP servers, and required secrets.\n\nImmutable: the tools available to the agent are fixed at creation.\nChanging tools mid-flight could violate the assumptions of an\nin-progress analysis or execution.",
+          "type": "object",
+          "minProperties": 1,
+          "properties": {
+            "mcpServers": {
+              "description": "mcpServers defines external MCP (Model Context Protocol) servers the\nagent can connect to for additional tools and context.",
+              "type": "array",
+              "maxItems": 20,
+              "minItems": 1,
+              "items": {
+                "description": "MCPServerConfig defines the configuration for an MCP (Model Context Protocol)\nserver that the agent can connect to for additional tools and context.\nMCP servers extend the agent's capabilities beyond its built-in skills.\n\nExample \u2014 connecting to an OpenShift MCP server with SA token auth:\n\n\tmcpServers:\n\t  - name: openshift\n\t    url: https://mcp.openshift-lightspeed.svc:8443/sse\n\t    timeoutSeconds: 10\n\t    headers:\n\t      - name: Authorization\n\t        valueFrom:\n\t          type: ServiceAccountToken\n\nExample \u2014 connecting to an external API with secret-based auth:\n\n\tmcpServers:\n\t  - name: pagerduty\n\t    url: https://mcp-pagerduty.example.com/sse\n\t    headers:\n\t      - name: X-API-Key\n\t        valueFrom:\n\t          type: Secret\n\t          secret:\n\t            name: pagerduty-api-key",
+                "type": "object",
+                "required": [
+                  "name",
+                  "url"
+                ],
+                "properties": {
+                  "headers": {
+                    "description": "headers to send to the MCP server. Maximum 20 items.",
+                    "type": "array",
+                    "maxItems": 20,
+                    "minItems": 1,
+                    "items": {
+                      "description": "MCPHeader defines an HTTP header to send with every request to an\nMCP server. Used for authentication and routing.",
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "valueFrom"
+                      ],
+                      "properties": {
+                        "name": {
+                          "description": "name of the header (e.g., \"Authorization\", \"X-API-Key\").\nMust be at least 1 character, containing only letters, digits, and hyphens.",
+                          "type": "string",
+                          "maxLength": 253,
+                          "minLength": 1,
+                          "x-kubernetes-validations": [
+                            {
+                              "message": "name must start with a letter and contain only letters, digits, and hyphens",
+                              "rule": "self.matches('^[A-Za-z][A-Za-z0-9-]*$')"
+                            }
+                          ]
+                        },
+                        "valueFrom": {
+                          "description": "valueFrom is the source of the header value.",
+                          "type": "object",
+                          "required": [
+                            "type"
+                          ],
+                          "properties": {
+                            "secret": {
+                              "description": "secret references a Secret containing the header value.\nRequired when type is \"Secret\".",
+                              "type": "object",
+                              "required": [
+                                "name"
+                              ],
+                              "properties": {
+                                "name": {
+                                  "description": "name of the Secret. Must be a valid RFC 1123 DNS subdomain.",
+                                  "type": "string",
+                                  "maxLength": 253,
+                                  "minLength": 1,
+                                  "x-kubernetes-validations": [
+                                    {
+                                      "message": "must be a valid DNS subdomain: lowercase alphanumeric characters, hyphens, and dots",
+                                      "rule": "self.matches('^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$')"
+                                    }
+                                  ]
+                                }
+                              },
+                              "additionalProperties": false
+                            },
+                            "type": {
+                              "description": "type specifies the source type for the header value. Allowed values:\n  - \"Secret\"     \u2014 reads the value from a Kubernetes Secret (use for\n    API keys and tokens). Requires the secret field to be set.\n  - \"ServiceAccountToken\" \u2014 auto-injects a Kubernetes service account token\n    (for MCP servers that accept K8s auth).",
+                              "type": "string",
+                              "enum": [
+                                "Secret",
+                                "ServiceAccountToken"
+                              ]
+                            }
+                          },
+                          "x-kubernetes-validations": [
+                            {
+                              "message": "secret is required when type is Secret, and forbidden otherwise",
+                              "rule": "self.type == 'Secret' ? has(self.secret) : !has(self.secret)"
+                            }
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "x-kubernetes-list-map-keys": [
+                      "name"
+                    ],
+                    "x-kubernetes-list-type": "map"
+                  },
+                  "name": {
+                    "description": "name of the MCP server. Must start with a letter and contain only\nlowercase alphanumeric characters and hyphens. Must be 1-253 characters.",
+                    "type": "string",
+                    "maxLength": 253,
+                    "minLength": 1,
+                    "x-kubernetes-validations": [
+                      {
+                        "message": "name must start with a lowercase letter and contain only lowercase alphanumerics and hyphens",
+                        "rule": "self.matches('^[a-z][a-z0-9-]*$')"
+                      }
+                    ]
+                  },
+                  "timeoutSeconds": {
+                    "description": "timeoutSeconds is the per-request timeout for calls to this MCP server,\nin seconds. Default is 5.\nValid range: 1-300.",
+                    "type": "integer",
+                    "format": "int32",
+                    "maximum": 300,
+                    "minimum": 1
+                  },
+                  "url": {
+                    "description": "url of the MCP server (HTTP/HTTPS). Must be an HTTP or HTTPS URL,\nmaximum 2048 characters.",
+                    "type": "string",
+                    "maxLength": 2048,
+                    "minLength": 1,
+                    "x-kubernetes-validations": [
+                      {
+                        "message": "url must be a valid HTTP or HTTPS URL",
+                        "rule": "isURL(self) && url(self).getScheme() in ['http', 'https']"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              },
+              "x-kubernetes-list-map-keys": [
+                "name"
+              ],
+              "x-kubernetes-list-type": "map"
+            },
+            "requiredSecrets": {
+              "description": "requiredSecrets declares Kubernetes Secrets that the sandbox pod\nneeds at runtime. The cluster admin creates the actual Secrets\nin the same namespace as the AgenticRun.",
+              "type": "array",
+              "maxItems": 20,
+              "minItems": 1,
+              "items": {
+                "description": "SecretRequirement declares a Kubernetes Secret that the sandbox needs\nat runtime. The Secret must exist in the operator namespace (where\nsandbox pods run), not in the AgenticRun's namespace.",
+                "type": "object",
+                "required": [
+                  "mountAs",
+                  "name"
+                ],
+                "properties": {
+                  "description": {
+                    "description": "description explains what this secret is used for, helping the\ncluster admin understand what credentials to provide.",
+                    "type": "string",
+                    "maxLength": 1024,
+                    "minLength": 1
+                  },
+                  "mountAs": {
+                    "description": "mountAs specifies how the secret is exposed in the sandbox pod.",
+                    "type": "object",
+                    "required": [
+                      "type"
+                    ],
+                    "properties": {
+                      "envVar": {
+                        "description": "envVar configures environment variable injection.\nRequired when type is \"EnvVar\".",
+                        "type": "object",
+                        "required": [
+                          "name"
+                        ],
+                        "properties": {
+                          "name": {
+                            "description": "name is the environment variable name (e.g., \"GITHUB_TOKEN\").\nMust be uppercase letters, digits, and underscores, starting\nwith a letter or underscore.",
+                            "type": "string",
+                            "maxLength": 256,
+                            "minLength": 1,
+                            "x-kubernetes-validations": [
+                              {
+                                "message": "must be a valid environment variable name: uppercase letters, digits, and underscores, starting with a letter or underscore",
+                                "rule": "self.matches('^[A-Z_][A-Z0-9_]*$')"
+                              }
+                            ]
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "filePath": {
+                        "description": "filePath configures file mount.\nRequired when type is \"FilePath\".",
+                        "type": "object",
+                        "required": [
+                          "path"
+                        ],
+                        "properties": {
+                          "path": {
+                            "description": "path is the absolute file path (e.g., \"/etc/secrets/tls.crt\").\nMust start with a forward slash.",
+                            "type": "string",
+                            "maxLength": 512,
+                            "minLength": 2,
+                            "x-kubernetes-validations": [
+                              {
+                                "message": "path must be an absolute path starting with '/'",
+                                "rule": "self.startsWith('/')"
+                              }
+                            ]
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "type": {
+                        "description": "type specifies how the secret is exposed. Allowed values: \"EnvVar\",\n\"FilePath\".\n\nWhen set to EnvVar, the secret value is injected as an environment\nvariable, and the 'envVar' field must be configured.\n\nWhen set to FilePath, the secret is mounted as a file, and the\n'filePath' field must be configured.",
+                        "type": "string",
+                        "enum": [
+                          "EnvVar",
+                          "FilePath"
+                        ]
+                      }
+                    },
+                    "x-kubernetes-validations": [
+                      {
+                        "message": "envVar is required when type is EnvVar, and forbidden otherwise",
+                        "rule": "self.type == 'EnvVar' ? has(self.envVar) : !has(self.envVar)"
+                      },
+                      {
+                        "message": "filePath is required when type is FilePath, and forbidden otherwise",
+                        "rule": "self.type == 'FilePath' ? has(self.filePath) : !has(self.filePath)"
+                      }
+                    ],
+                    "additionalProperties": false
+                  },
+                  "name": {
+                    "description": "name of the Secret (must exist in the operator namespace).\nMust be a valid RFC 1123 DNS subdomain.",
+                    "type": "string",
+                    "maxLength": 253,
+                    "minLength": 1,
+                    "x-kubernetes-validations": [
+                      {
+                        "message": "must be a valid DNS subdomain: lowercase alphanumeric characters, hyphens, and dots",
+                        "rule": "self.matches('^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$')"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              },
+              "x-kubernetes-list-map-keys": [
+                "name"
+              ],
+              "x-kubernetes-list-type": "map"
+            },
+            "skills": {
+              "description": "skills defines one or more OCI images containing skills to mount\nin the agent's sandbox pod. The operator creates Kubernetes image\nvolumes (requires K8s 1.34+) and mounts them into the agent's\nskills directory. Each image must be unique within the list.",
+              "type": "array",
+              "maxItems": 20,
+              "minItems": 1,
+              "items": {
+                "description": "SkillsSource defines an OCI image containing skills and which paths\nwithin that image to mount. Skills are mounted as Kubernetes image\nvolumes in the agent's sandbox pod.\n\nEach path is mounted as a separate subPath volumeMount, allowing\nselective composition of skills from shared images.\n\nExample \u2014 mount specific skills from the agentic-skills image:\n\n\tskills:\n\t  - image: registry.ci.openshift.org/ocp/5.0:agentic-skills\n\t    paths:\n\t      - /skills/cluster-update/update-advisor",
+                "type": "object",
+                "required": [
+                  "image",
+                  "paths"
+                ],
+                "properties": {
+                  "image": {
+                    "description": "image is the OCI image reference containing skills.\nThe operator mounts this as a Kubernetes image volume (requires K8s 1.34+).\nMust be a valid OCI image pullspec: a domain, followed by a repository path,\nending with either a tag (:tag) or a digest (@algorithm:hex).\nMust be 1-512 characters.",
+                    "type": "string",
+                    "maxLength": 512,
+                    "minLength": 1,
+                    "x-kubernetes-validations": [
+                      {
+                        "message": "must start with a valid domain. valid domains must be alphanumeric characters (lowercase and uppercase) separated by the '.' character.",
+                        "rule": "self.matches('^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])((\\\\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]))+)?(:[0-9]+)?\\\\b')"
+                      },
+                      {
+                        "message": "a valid name is required. valid names must contain lowercase alphanumeric characters separated only by the '.', '_', '__', '-' characters.",
+                        "rule": "self.find('(/[a-z0-9]+((([._]|__|[-]*)[a-z0-9]+)+)?((/[a-z0-9]+((([._]|__|[-]*)[a-z0-9]+)+)?)+)?)') != ''"
+                      },
+                      {
+                        "message": "must end with a digest or a tag",
+                        "rule": "self.find('(@.*:)') != '' || self.find(':.*$') != ''"
+                      },
+                      {
+                        "message": "tag must not be more than 127 characters",
+                        "rule": "self.find('(@.*:)') == '' ? (self.find(':.*$') != '' ? self.find(':.*$').substring(1).size() <= 127 : true) : true"
+                      },
+                      {
+                        "message": "tag is invalid. valid tags must begin with a word character followed by word characters, '.', or '-'",
+                        "rule": "self.find('(@.*:)') == '' ? (self.find(':.*$') != '' ? self.find(':.*$').matches(':[\\\\w][\\\\w.-]*$') : true) : true"
+                      },
+                      {
+                        "message": "digest algorithm is not valid. valid algorithms must start with an alpha character followed by alphanumeric characters and may contain '-', '_', '+', and '.' characters.",
+                        "rule": "self.find('(@.*:)') != '' ? self.find('(@.*:)').matches('(@[A-Za-z][A-Za-z0-9]*([_+.][A-Za-z][A-Za-z0-9]*)*[:])') : true"
+                      },
+                      {
+                        "message": "digest must be at least 32 characters",
+                        "rule": "self.find('(@.*:)') != '' ? self.find(':.*$').substring(1).size() >= 32 : true"
+                      },
+                      {
+                        "message": "digest must only contain hex characters (A-F, a-f, 0-9)",
+                        "rule": "self.find('(@.*:)') != '' ? self.find(':.*$').matches(':[0-9A-Fa-f]*$') : true"
+                      }
+                    ]
+                  },
+                  "paths": {
+                    "description": "paths specifies which directories from the image are mounted.\nEach path is mounted as a separate subPath volumeMount into the agent's\nskills directory. The last segment of each path becomes the mount name\n(e.g., \"/skills/prometheus\" mounts as \"prometheus\").\n\nEach path must be an absolute file path: starts with \"/\", no \"..\"\nor \".\" segments, no double slashes, no trailing slash, and only\nalphanumeric characters, hyphens, underscores, dots, and slashes.\n\nMaximum 50 items.",
+                    "type": "array",
+                    "maxItems": 50,
+                    "minItems": 1,
+                    "items": {
+                      "type": "string",
+                      "maxLength": 512,
+                      "minLength": 2
+                    },
+                    "x-kubernetes-list-type": "atomic",
+                    "x-kubernetes-validations": [
+                      {
+                        "message": "each path must be 2-512 characters",
+                        "rule": "self.all(p, p.size() >= 2 && p.size() <= 512)"
+                      },
+                      {
+                        "message": "each path must be absolute (start with '/')",
+                        "rule": "self.all(p, p.startsWith('/'))"
+                      },
+                      {
+                        "message": "paths must not end with '/'",
+                        "rule": "self.all(p, !p.endsWith('/'))"
+                      },
+                      {
+                        "message": "paths must not contain double slashes",
+                        "rule": "self.all(p, !p.contains('//'))"
+                      },
+                      {
+                        "message": "paths must not contain '.' or '..' segments",
+                        "rule": "self.all(p, !p.contains('/../') && !p.endsWith('/..') && !p.contains('/./') && !p.endsWith('/.'))"
+                      },
+                      {
+                        "message": "paths may only contain alphanumeric characters, '/', '_', '.', and '-'",
+                        "rule": "self.all(p, p.matches('^[a-zA-Z0-9/_.-]+$'))"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              },
+              "x-kubernetes-list-map-keys": [
+                "image"
+              ],
+              "x-kubernetes-list-type": "map"
+            }
+          },
+          "additionalProperties": false
+        },
+        "verification": {
+          "description": "verification defines the agent used for the verification step.\nOmit to skip verification.",
+          "type": "object",
+          "minProperties": 1,
+          "properties": {
+            "agent": {
+              "description": "agent is the name of the cluster-scoped Agent CR to use for this step.\nDefaults to \"default\" when omitted.",
+              "type": "string",
+              "maxLength": 253,
+              "minLength": 1,
+              "x-kubernetes-validations": [
+                {
+                  "message": "must be a valid DNS subdomain: lowercase alphanumeric characters, hyphens, and dots",
+                  "rule": "self.matches('^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$')"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "x-kubernetes-validations": [
+        {
+          "message": "analysis must be provided",
+          "rule": "has(self.analysis)"
+        },
+        {
+          "message": "targetCluster is immutable",
+          "rule": "has(self.targetCluster) == has(oldSelf.targetCluster) && (!has(self.targetCluster) || self.targetCluster == oldSelf.targetCluster)"
+        },
+        {
+          "message": "analysisOutput is immutable once set",
+          "rule": "!has(oldSelf.analysisOutput) || (has(self.analysisOutput) && self.analysisOutput == oldSelf.analysisOutput)"
+        },
+        {
+          "message": "analysisOutput mode Minimal is only allowed for analysis-only runs (no execution or verification steps)",
+          "rule": "!has(self.analysisOutput) || self.analysisOutput.mode != 'Minimal' || (!has(self.execution) && !has(self.verification))"
+        },
+        {
+          "message": "tools is immutable once set",
+          "rule": "!has(oldSelf.tools) || (has(self.tools) && self.tools == oldSelf.tools)"
+        },
+        {
+          "message": "analysis is immutable once set",
+          "rule": "!has(oldSelf.analysis) || (has(self.analysis) && self.analysis == oldSelf.analysis)"
+        },
+        {
+          "message": "execution is immutable once set",
+          "rule": "!has(oldSelf.execution) || (has(self.execution) && self.execution == oldSelf.execution)"
+        },
+        {
+          "message": "verification is immutable once set",
+          "rule": "!has(oldSelf.verification) || (has(self.verification) && self.verification == oldSelf.verification)"
+        }
+      ],
+      "additionalProperties": false
+    },
+    "status": {
+      "description": "status defines the observed state of AgenticRun.",
+      "type": "object",
+      "minProperties": 1,
+      "properties": {
+        "conditions": {
+          "description": "conditions represent the latest available observations using the\nstandard Kubernetes condition pattern. Condition types include:\nAnalyzed, Approved, Executed, Verified, and Escalated.",
+          "type": "array",
+          "maxItems": 9,
+          "minItems": 1,
+          "items": {
+            "description": "Condition contains details for one aspect of the current state of this API Resource.",
+            "type": "object",
+            "required": [
+              "lastTransitionTime",
+              "message",
+              "reason",
+              "status",
+              "type"
+            ],
+            "properties": {
+              "lastTransitionTime": {
+                "description": "lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.",
+                "type": "string",
+                "format": "date-time"
+              },
+              "message": {
+                "description": "message is a human readable message indicating details about the transition.\nThis may be an empty string.",
+                "type": "string",
+                "maxLength": 32768
+              },
+              "observedGeneration": {
+                "description": "observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.",
+                "type": "integer",
+                "format": "int64",
+                "minimum": 0
+              },
+              "reason": {
+                "description": "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
+                "type": "string",
+                "maxLength": 1024,
+                "minLength": 1,
+                "pattern": "^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$"
+              },
+              "status": {
+                "description": "status of the condition, one of True, False, Unknown.",
+                "type": "string",
+                "enum": [
+                  "True",
+                  "False",
+                  "Unknown"
+                ]
+              },
+              "type": {
+                "description": "type of condition in CamelCase or in foo.example.com/CamelCase.",
+                "type": "string",
+                "maxLength": 316,
+                "pattern": "^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "x-kubernetes-list-map-keys": [
+            "type"
+          ],
+          "x-kubernetes-list-type": "map"
+        },
+        "deleteAfter": {
+          "description": "deleteAfter is the fixed deadline for automatic deletion of this run.\nIt is absent for preserved failed runs. The controller sets it once\nfor each terminal transition and does not change it when the cluster\nretention ceiling changes.",
+          "type": "string",
+          "format": "date-time"
+        },
+        "steps": {
+          "description": "steps contains the per-step observed state (analysis, execution,\nverification). Each step independently tracks its timing, sandbox\ninfo, and references to result CRs.",
+          "type": "object",
+          "minProperties": 1,
+          "properties": {
+            "analysis": {
+              "description": "analysis is the observed state of the analysis step.",
+              "type": "object",
+              "minProperties": 1,
+              "properties": {
+                "conditions": {
+                  "description": "conditions for this step.",
+                  "type": "array",
+                  "maxItems": 8,
+                  "minItems": 1,
+                  "items": {
+                    "description": "Condition contains details for one aspect of the current state of this API Resource.",
+                    "type": "object",
+                    "required": [
+                      "lastTransitionTime",
+                      "message",
+                      "reason",
+                      "status",
+                      "type"
+                    ],
+                    "properties": {
+                      "lastTransitionTime": {
+                        "description": "lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.",
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "message": {
+                        "description": "message is a human readable message indicating details about the transition.\nThis may be an empty string.",
+                        "type": "string",
+                        "maxLength": 32768
+                      },
+                      "observedGeneration": {
+                        "description": "observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.",
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                      },
+                      "reason": {
+                        "description": "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
+                        "type": "string",
+                        "maxLength": 1024,
+                        "minLength": 1,
+                        "pattern": "^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$"
+                      },
+                      "status": {
+                        "description": "status of the condition, one of True, False, Unknown.",
+                        "type": "string",
+                        "enum": [
+                          "True",
+                          "False",
+                          "Unknown"
+                        ]
+                      },
+                      "type": {
+                        "description": "type of condition in CamelCase or in foo.example.com/CamelCase.",
+                        "type": "string",
+                        "maxLength": 316,
+                        "pattern": "^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "x-kubernetes-list-map-keys": [
+                    "type"
+                  ],
+                  "x-kubernetes-list-type": "map"
+                },
+                "results": {
+                  "description": "results references AnalysisResult CRs, newest last.\nEach entry corresponds to one analysis attempt.",
+                  "type": "array",
+                  "maxItems": 20,
+                  "minItems": 1,
+                  "items": {
+                    "description": "StepResultRef is a lightweight reference to a result CR with an inline\nsuccess field for quick scanning without fetching the CR.",
+                    "type": "object",
+                    "required": [
+                      "name",
+                      "outcome"
+                    ],
+                    "properties": {
+                      "name": {
+                        "description": "name is the name of the result CR.",
+                        "type": "string",
+                        "maxLength": 253,
+                        "minLength": 1
+                      },
+                      "outcome": {
+                        "description": "outcome indicates the result of this step attempt.\nMust be one of: Succeeded, Failed.",
+                        "type": "string",
+                        "enum": [
+                          "Succeeded",
+                          "Failed"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "x-kubernetes-list-type": "atomic"
+                },
+                "sandbox": {
+                  "description": "sandbox tracks the sandbox used.",
+                  "type": "object",
+                  "required": [
+                    "claimName",
+                    "namespace"
+                  ],
+                  "properties": {
+                    "claimName": {
+                      "description": "claimName is the name of the SandboxClaim resource that owns the\nsandbox pod. Maximum 253 characters.",
+                      "type": "string",
+                      "maxLength": 253,
+                      "minLength": 1
+                    },
+                    "namespace": {
+                      "description": "namespace is the namespace where the SandboxClaim and its pod live.\nMust be a valid RFC 1123 DNS label.",
+                      "type": "string",
+                      "maxLength": 63,
+                      "minLength": 1,
+                      "x-kubernetes-validations": [
+                        {
+                          "message": "must be a valid DNS label: lowercase alphanumeric characters and hyphens",
+                          "rule": "self.matches('^[a-z0-9]([-a-z0-9]*[a-z0-9])?$')"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "escalation": {
+              "description": "escalation is the observed state of the escalation step.",
+              "type": "object",
+              "minProperties": 1,
+              "properties": {
+                "conditions": {
+                  "description": "conditions for this step.",
+                  "type": "array",
+                  "maxItems": 8,
+                  "minItems": 1,
+                  "items": {
+                    "description": "Condition contains details for one aspect of the current state of this API Resource.",
+                    "type": "object",
+                    "required": [
+                      "lastTransitionTime",
+                      "message",
+                      "reason",
+                      "status",
+                      "type"
+                    ],
+                    "properties": {
+                      "lastTransitionTime": {
+                        "description": "lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.",
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "message": {
+                        "description": "message is a human readable message indicating details about the transition.\nThis may be an empty string.",
+                        "type": "string",
+                        "maxLength": 32768
+                      },
+                      "observedGeneration": {
+                        "description": "observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.",
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                      },
+                      "reason": {
+                        "description": "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
+                        "type": "string",
+                        "maxLength": 1024,
+                        "minLength": 1,
+                        "pattern": "^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$"
+                      },
+                      "status": {
+                        "description": "status of the condition, one of True, False, Unknown.",
+                        "type": "string",
+                        "enum": [
+                          "True",
+                          "False",
+                          "Unknown"
+                        ]
+                      },
+                      "type": {
+                        "description": "type of condition in CamelCase or in foo.example.com/CamelCase.",
+                        "type": "string",
+                        "maxLength": 316,
+                        "pattern": "^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "x-kubernetes-list-map-keys": [
+                    "type"
+                  ],
+                  "x-kubernetes-list-type": "map"
+                },
+                "results": {
+                  "description": "results references EscalationResult CRs, newest last.",
+                  "type": "array",
+                  "maxItems": 20,
+                  "minItems": 1,
+                  "items": {
+                    "description": "StepResultRef is a lightweight reference to a result CR with an inline\nsuccess field for quick scanning without fetching the CR.",
+                    "type": "object",
+                    "required": [
+                      "name",
+                      "outcome"
+                    ],
+                    "properties": {
+                      "name": {
+                        "description": "name is the name of the result CR.",
+                        "type": "string",
+                        "maxLength": 253,
+                        "minLength": 1
+                      },
+                      "outcome": {
+                        "description": "outcome indicates the result of this step attempt.\nMust be one of: Succeeded, Failed.",
+                        "type": "string",
+                        "enum": [
+                          "Succeeded",
+                          "Failed"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "x-kubernetes-list-type": "atomic"
+                },
+                "sandbox": {
+                  "description": "sandbox tracks the sandbox used.",
+                  "type": "object",
+                  "required": [
+                    "claimName",
+                    "namespace"
+                  ],
+                  "properties": {
+                    "claimName": {
+                      "description": "claimName is the name of the SandboxClaim resource that owns the\nsandbox pod. Maximum 253 characters.",
+                      "type": "string",
+                      "maxLength": 253,
+                      "minLength": 1
+                    },
+                    "namespace": {
+                      "description": "namespace is the namespace where the SandboxClaim and its pod live.\nMust be a valid RFC 1123 DNS label.",
+                      "type": "string",
+                      "maxLength": 63,
+                      "minLength": 1,
+                      "x-kubernetes-validations": [
+                        {
+                          "message": "must be a valid DNS label: lowercase alphanumeric characters and hyphens",
+                          "rule": "self.matches('^[a-z0-9]([-a-z0-9]*[a-z0-9])?$')"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "execution": {
+              "description": "execution is the observed state of the execution step.",
+              "type": "object",
+              "minProperties": 1,
+              "properties": {
+                "conditions": {
+                  "description": "conditions for this step.",
+                  "type": "array",
+                  "maxItems": 8,
+                  "minItems": 1,
+                  "items": {
+                    "description": "Condition contains details for one aspect of the current state of this API Resource.",
+                    "type": "object",
+                    "required": [
+                      "lastTransitionTime",
+                      "message",
+                      "reason",
+                      "status",
+                      "type"
+                    ],
+                    "properties": {
+                      "lastTransitionTime": {
+                        "description": "lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.",
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "message": {
+                        "description": "message is a human readable message indicating details about the transition.\nThis may be an empty string.",
+                        "type": "string",
+                        "maxLength": 32768
+                      },
+                      "observedGeneration": {
+                        "description": "observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.",
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                      },
+                      "reason": {
+                        "description": "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
+                        "type": "string",
+                        "maxLength": 1024,
+                        "minLength": 1,
+                        "pattern": "^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$"
+                      },
+                      "status": {
+                        "description": "status of the condition, one of True, False, Unknown.",
+                        "type": "string",
+                        "enum": [
+                          "True",
+                          "False",
+                          "Unknown"
+                        ]
+                      },
+                      "type": {
+                        "description": "type of condition in CamelCase or in foo.example.com/CamelCase.",
+                        "type": "string",
+                        "maxLength": 316,
+                        "pattern": "^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "x-kubernetes-list-map-keys": [
+                    "type"
+                  ],
+                  "x-kubernetes-list-type": "map"
+                },
+                "results": {
+                  "description": "results references ExecutionResult CRs, newest last.\nEach entry corresponds to one execution attempt (one per revision).",
+                  "type": "array",
+                  "maxItems": 20,
+                  "minItems": 1,
+                  "items": {
+                    "description": "StepResultRef is a lightweight reference to a result CR with an inline\nsuccess field for quick scanning without fetching the CR.",
+                    "type": "object",
+                    "required": [
+                      "name",
+                      "outcome"
+                    ],
+                    "properties": {
+                      "name": {
+                        "description": "name is the name of the result CR.",
+                        "type": "string",
+                        "maxLength": 253,
+                        "minLength": 1
+                      },
+                      "outcome": {
+                        "description": "outcome indicates the result of this step attempt.\nMust be one of: Succeeded, Failed.",
+                        "type": "string",
+                        "enum": [
+                          "Succeeded",
+                          "Failed"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "x-kubernetes-list-type": "atomic"
+                },
+                "sandbox": {
+                  "description": "sandbox tracks the sandbox used.",
+                  "type": "object",
+                  "required": [
+                    "claimName",
+                    "namespace"
+                  ],
+                  "properties": {
+                    "claimName": {
+                      "description": "claimName is the name of the SandboxClaim resource that owns the\nsandbox pod. Maximum 253 characters.",
+                      "type": "string",
+                      "maxLength": 253,
+                      "minLength": 1
+                    },
+                    "namespace": {
+                      "description": "namespace is the namespace where the SandboxClaim and its pod live.\nMust be a valid RFC 1123 DNS label.",
+                      "type": "string",
+                      "maxLength": 63,
+                      "minLength": 1,
+                      "x-kubernetes-validations": [
+                        {
+                          "message": "must be a valid DNS label: lowercase alphanumeric characters and hyphens",
+                          "rule": "self.matches('^[a-z0-9]([-a-z0-9]*[a-z0-9])?$')"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "verification": {
+              "description": "verification is the observed state of the verification step.",
+              "type": "object",
+              "minProperties": 1,
+              "properties": {
+                "conditions": {
+                  "description": "conditions for this step.",
+                  "type": "array",
+                  "maxItems": 8,
+                  "minItems": 1,
+                  "items": {
+                    "description": "Condition contains details for one aspect of the current state of this API Resource.",
+                    "type": "object",
+                    "required": [
+                      "lastTransitionTime",
+                      "message",
+                      "reason",
+                      "status",
+                      "type"
+                    ],
+                    "properties": {
+                      "lastTransitionTime": {
+                        "description": "lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.",
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "message": {
+                        "description": "message is a human readable message indicating details about the transition.\nThis may be an empty string.",
+                        "type": "string",
+                        "maxLength": 32768
+                      },
+                      "observedGeneration": {
+                        "description": "observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.",
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                      },
+                      "reason": {
+                        "description": "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
+                        "type": "string",
+                        "maxLength": 1024,
+                        "minLength": 1,
+                        "pattern": "^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$"
+                      },
+                      "status": {
+                        "description": "status of the condition, one of True, False, Unknown.",
+                        "type": "string",
+                        "enum": [
+                          "True",
+                          "False",
+                          "Unknown"
+                        ]
+                      },
+                      "type": {
+                        "description": "type of condition in CamelCase or in foo.example.com/CamelCase.",
+                        "type": "string",
+                        "maxLength": 316,
+                        "pattern": "^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "x-kubernetes-list-map-keys": [
+                    "type"
+                  ],
+                  "x-kubernetes-list-type": "map"
+                },
+                "results": {
+                  "description": "results references VerificationResult CRs, newest last.\nEach entry corresponds to one verification attempt (one per revision).",
+                  "type": "array",
+                  "maxItems": 20,
+                  "minItems": 1,
+                  "items": {
+                    "description": "StepResultRef is a lightweight reference to a result CR with an inline\nsuccess field for quick scanning without fetching the CR.",
+                    "type": "object",
+                    "required": [
+                      "name",
+                      "outcome"
+                    ],
+                    "properties": {
+                      "name": {
+                        "description": "name is the name of the result CR.",
+                        "type": "string",
+                        "maxLength": 253,
+                        "minLength": 1
+                      },
+                      "outcome": {
+                        "description": "outcome indicates the result of this step attempt.\nMust be one of: Succeeded, Failed.",
+                        "type": "string",
+                        "enum": [
+                          "Succeeded",
+                          "Failed"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "x-kubernetes-list-type": "atomic"
+                },
+                "sandbox": {
+                  "description": "sandbox tracks the sandbox used.",
+                  "type": "object",
+                  "required": [
+                    "claimName",
+                    "namespace"
+                  ],
+                  "properties": {
+                    "claimName": {
+                      "description": "claimName is the name of the SandboxClaim resource that owns the\nsandbox pod. Maximum 253 characters.",
+                      "type": "string",
+                      "maxLength": 253,
+                      "minLength": 1
+                    },
+                    "namespace": {
+                      "description": "namespace is the namespace where the SandboxClaim and its pod live.\nMust be a valid RFC 1123 DNS label.",
+                      "type": "string",
+                      "maxLength": 63,
+                      "minLength": 1,
+                      "x-kubernetes-validations": [
+                        {
+                          "message": "must be a valid DNS label: lowercase alphanumeric characters and hyphens",
+                          "rule": "self.matches('^[a-z0-9]([-a-z0-9]*[a-z0-9])?$')"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "terminalTime": {
+          "description": "terminalTime is the timestamp when the run reached its current\nterminal state (Completed, Failed, Denied, Escalated,\nEmergencyStopped). Set once by the operator and not\nupdated again while the run remains terminal; cleared when a\nrevision request moves the run out of a terminal phase back into\nanalysis, so a later terminal phase gets a fresh timestamp.\nUsed with status.deleteAfter to report when the run is eligible\nfor deletion.",
+          "type": "string",
+          "format": "date-time"
+        },
+        "tokenUsage": {
+          "description": "tokenUsage is the cumulative token usage across all completed steps.\nAbsent when no steps have completed with token data.",
+          "type": "object",
+          "minProperties": 1,
+          "required": [
+            "inputTokens",
+            "outputTokens"
+          ],
+          "properties": {
+            "inputTokens": {
+              "description": "inputTokens is the number of input (prompt) tokens consumed.",
+              "type": "integer",
+              "format": "int64",
+              "minimum": 0
+            },
+            "outputTokens": {
+              "description": "outputTokens is the number of output (completion) tokens consumed.",
+              "type": "integer",
+              "format": "int64",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "x-kubernetes-group-version-kind": [
+    {
+      "group": "agentic.openshift.io",
+      "kind": "AgenticRun",
+      "version": "v1alpha1"
+    }
+  ],
+  "x-kubernetes-validations": [
+    {
+      "message": "terminalTTL cannot change after terminalTime is recorded",
+      "rule": "!has(oldSelf.status) || !has(oldSelf.status.terminalTime) || (has(self.spec.terminalTTL) == has(oldSelf.spec.terminalTTL) && (!has(self.spec.terminalTTL) || self.spec.terminalTTL == oldSelf.spec.terminalTTL))"
+    }
+  ],
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

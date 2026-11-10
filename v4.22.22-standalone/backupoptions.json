@@ -1,0 +1,54 @@
+{
+  "description": "BackupOptions are options used to configure virtual machine backup job",
+  "type": "object",
+  "properties": {
+    "backupCert": {
+      "type": "string"
+    },
+    "backupKey": {
+      "type": "string"
+    },
+    "backupName": {
+      "type": "string"
+    },
+    "backupStartTime": {
+      "description": "Time is a wrapper around time.Time which supports correct marshaling to YAML and JSON.  Wrappers are provided for many of the factory methods that the time package offers.",
+      "type": "string",
+      "format": "date-time"
+    },
+    "caCert": {
+      "type": "string"
+    },
+    "cmd": {
+      "type": "string"
+    },
+    "exportServerAddr": {
+      "type": "string"
+    },
+    "exportServerName": {
+      "type": "string"
+    },
+    "incremental": {
+      "type": "string"
+    },
+    "mode": {
+      "type": "string"
+    },
+    "skipQuiesce": {
+      "type": "boolean"
+    },
+    "targetPath": {
+      "type": "string"
+    },
+    "apiVersion": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string"
+    },
+    "metadata": {
+      "type": "object"
+    }
+  },
+  "$schema": "http://json-schema.org/schema#"
+}
