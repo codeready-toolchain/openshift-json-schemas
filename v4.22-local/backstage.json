@@ -1,0 +1,501 @@
+{
+  "description": "Backstage is the Schema for the Red Hat Developer Hub backstages API.\nIt comes with pre-built plug-ins, configuration settings, and deployment mechanisms,\nwhich can help streamline the process of setting up a self-managed internal\ndeveloper portal for adopters who are just starting out.",
+  "type": "object",
+  "properties": {
+    "apiVersion": {
+      "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+      "type": "string"
+    },
+    "kind": {
+      "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+      "type": "string"
+    },
+    "metadata": {
+      "description": "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta"
+    },
+    "spec": {
+      "description": "BackstageSpec defines the desired state of Backstage",
+      "type": "object",
+      "properties": {
+        "application": {
+          "description": "Configuration for Backstage. Optional.",
+          "type": "object",
+          "properties": {
+            "appConfig": {
+              "description": "References to existing app-configs ConfigMap objects, that will be mounted as files in the specified mount path.\nEach element can be a reference to any ConfigMap or Secret,\nand will be mounted inside the main application container under a specified mount directory.\nAdditionally, each file will be passed as a `--config /mount/path/to/configmap/key` to the\nmain container args in the order of the entries defined in the AppConfigs list.\nBut bear in mind that for a single ConfigMap element containing several filenames,\nthe order in which those files will be appended to the main container args cannot be guaranteed.\nSo if you want to pass multiple app-config files, it is recommended to pass one ConfigMap per app-config file.",
+              "type": "object",
+              "properties": {
+                "configMaps": {
+                  "description": "List of ConfigMaps storing the app-config files. Will be mounted as files under the MountPath specified.\nFor each item in this array, if a key is not specified, it means that all keys in the ConfigMap will be mounted as files.\nOtherwise, only the specified key will be mounted as a file.\nBear in mind not to put sensitive data in those ConfigMaps. Instead, your app-config content can reference\nenvironment variables (which you can set with the ExtraEnvs field) and/or include extra files (see the ExtraFiles field).\nMore details on https://backstage.io/docs/conf/writing/.",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "name"
+                    ],
+                    "properties": {
+                      "containers": {
+                        "description": "If set, the file will be mounted only in the specified containers, otherwise in backstage container only.\nIf it contains only \"*\", it means all containers and no other names are allowed.",
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {
+                          "type": "string"
+                        },
+                        "x-kubernetes-validations": [
+                          {
+                            "message": "If '*' is specified, no other container names are allowed",
+                            "rule": "!(size(self) != 1 && self[0]==\"*\")"
+                          }
+                        ]
+                      },
+                      "key": {
+                        "description": "Key in the object",
+                        "type": "string"
+                      },
+                      "mountPath": {
+                        "description": "Path to mount the Object. If not specified default-path/Name will be used",
+                        "type": "string"
+                      },
+                      "name": {
+                        "description": "Name of the object\nSupported ConfigMaps and Secrets",
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "mountPath": {
+                  "description": "Mount path for all app-config files listed in the ConfigMapRefs field",
+                  "type": "string"
+                }
+              }
+            },
+            "dynamicPluginsConfigMapName": {
+              "description": "Reference to an existing ConfigMap for Dynamic Plugins.\nA new one will be generated with the default config if not set.\nThe ConfigMap object must have an existing key named: 'dynamic-plugins.yaml'.",
+              "type": "string"
+            },
+            "extraEnvs": {
+              "description": "Extra environment variables",
+              "type": "object",
+              "properties": {
+                "configMaps": {
+                  "description": "List of references to ConfigMaps objects to inject as additional environment variables.\nFor each item in this array, if a key is not specified, it means that all keys in the ConfigMap will be injected as additional environment variables.\nOtherwise, only the specified key will be injected as an additional environment variable.",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "name"
+                    ],
+                    "properties": {
+                      "containers": {
+                        "description": "If set, the env variable will be injected only in the specified containers, otherwise in backstage container only.\nIf it contains only \"*\", it means all containers and no other names are allowed.",
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {
+                          "type": "string"
+                        },
+                        "x-kubernetes-validations": [
+                          {
+                            "message": "If '*' is specified, no other container names are allowed",
+                            "rule": "!(size(self) != 1 && self[0]==\"*\")"
+                          }
+                        ]
+                      },
+                      "key": {
+                        "description": "Key in the object",
+                        "type": "string"
+                      },
+                      "name": {
+                        "description": "Name of the object\nWe support only ConfigMaps and Secrets.",
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "envs": {
+                  "description": "List of name and value pairs to add as environment variables.",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "name",
+                      "value"
+                    ],
+                    "properties": {
+                      "containers": {
+                        "description": "If set, the env variable will be injected only in the specified containers, otherwise in backstage container only.\nIf it contains only \"*\", it means all containers and no other names are allowed.",
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {
+                          "type": "string"
+                        },
+                        "x-kubernetes-validations": [
+                          {
+                            "message": "If '*' is specified, no other container names are allowed",
+                            "rule": "!(size(self) != 1 && self[0]==\"*\")"
+                          }
+                        ]
+                      },
+                      "name": {
+                        "description": "Name of the environment variable",
+                        "type": "string"
+                      },
+                      "value": {
+                        "description": "Value of the environment variable",
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "secrets": {
+                  "description": "List of references to Secrets objects to inject as additional environment variables.\nFor each item in this array, if a key is not specified, it means that all keys in the Secret will be injected as additional environment variables.\nOtherwise, only the specified key will be injected as environment variable.",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "name"
+                    ],
+                    "properties": {
+                      "containers": {
+                        "description": "If set, the env variable will be injected only in the specified containers, otherwise in backstage container only.\nIf it contains only \"*\", it means all containers and no other names are allowed.",
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {
+                          "type": "string"
+                        },
+                        "x-kubernetes-validations": [
+                          {
+                            "message": "If '*' is specified, no other container names are allowed",
+                            "rule": "!(size(self) != 1 && self[0]==\"*\")"
+                          }
+                        ]
+                      },
+                      "key": {
+                        "description": "Key in the object",
+                        "type": "string"
+                      },
+                      "name": {
+                        "description": "Name of the object\nWe support only ConfigMaps and Secrets.",
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "extraFiles": {
+              "description": "References to existing Config objects to use as extra config files.\nThey will be mounted as files in the specified mount path.\nEach element can be a reference to any ConfigMap or Secret.",
+              "type": "object",
+              "properties": {
+                "configMaps": {
+                  "description": "List of references to ConfigMaps objects mounted as extra files under the MountPath specified.\nFor each item in this array, if a key is not specified, it means that all keys in the ConfigMap will be mounted as files.\nOtherwise, only the specified key will be mounted as a file.",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "name"
+                    ],
+                    "properties": {
+                      "containers": {
+                        "description": "If set, the file will be mounted only in the specified containers, otherwise in backstage container only.\nIf it contains only \"*\", it means all containers and no other names are allowed.",
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {
+                          "type": "string"
+                        },
+                        "x-kubernetes-validations": [
+                          {
+                            "message": "If '*' is specified, no other container names are allowed",
+                            "rule": "!(size(self) != 1 && self[0]==\"*\")"
+                          }
+                        ]
+                      },
+                      "key": {
+                        "description": "Key in the object",
+                        "type": "string"
+                      },
+                      "mountPath": {
+                        "description": "Path to mount the Object. If not specified default-path/Name will be used",
+                        "type": "string"
+                      },
+                      "name": {
+                        "description": "Name of the object\nSupported ConfigMaps and Secrets",
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "mountPath": {
+                  "description": "Mount path for all extra configuration files listed in the Items field",
+                  "type": "string"
+                },
+                "pvcs": {
+                  "description": "List of references to Persistent Volume Claim objects mounted as extra files\nFor each item in this array, a key must be specified that will be mounted as a file.",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "name"
+                    ],
+                    "properties": {
+                      "containers": {
+                        "description": "If set, the file will be mounted only in the specified containers, otherwise in backstage container only.\nIf it contains only \"*\", it means all containers and no other names are allowed.",
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {
+                          "type": "string"
+                        },
+                        "x-kubernetes-validations": [
+                          {
+                            "message": "If '*' is specified, no other container names are allowed",
+                            "rule": "!(size(self) != 1 && self[0]==\"*\")"
+                          }
+                        ]
+                      },
+                      "mountPath": {
+                        "description": "Path to mount PVC. If not specified default-path/Name will be used",
+                        "type": "string"
+                      },
+                      "name": {
+                        "description": "Name of the object",
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "secrets": {
+                  "description": "List of references to Secrets objects mounted as extra files under the MountPath specified.\nFor each item in this array, a key must be specified that will be mounted as a file.",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "name"
+                    ],
+                    "properties": {
+                      "containers": {
+                        "description": "If set, the file will be mounted only in the specified containers, otherwise in backstage container only.\nIf it contains only \"*\", it means all containers and no other names are allowed.",
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {
+                          "type": "string"
+                        },
+                        "x-kubernetes-validations": [
+                          {
+                            "message": "If '*' is specified, no other container names are allowed",
+                            "rule": "!(size(self) != 1 && self[0]==\"*\")"
+                          }
+                        ]
+                      },
+                      "key": {
+                        "description": "Key in the object",
+                        "type": "string"
+                      },
+                      "mountPath": {
+                        "description": "Path to mount the Object. If not specified default-path/Name will be used",
+                        "type": "string"
+                      },
+                      "name": {
+                        "description": "Name of the object\nSupported ConfigMaps and Secrets",
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "route": {
+              "description": "Route configuration. Used for OpenShift only.",
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "description": "Control the creation of a Route on OpenShift.",
+                  "type": "boolean"
+                },
+                "host": {
+                  "description": "Host is an alias/DNS that points to the service. Optional.\nIgnored if Enabled is false.\nIf not specified a route name will typically be automatically\nchosen.  Must follow DNS952 subdomain conventions.",
+                  "type": "string",
+                  "maxLength": 253,
+                  "pattern": "^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])(\\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9]))*$"
+                },
+                "subdomain": {
+                  "description": "Subdomain is a DNS subdomain that is requested within the ingress controller's\ndomain (as a subdomain).\nIgnored if Enabled is false.\nExample: subdomain `frontend` automatically receives the router subdomain\n`apps.mycluster.com` to have a full hostname `frontend.apps.mycluster.com`.",
+                  "type": "string",
+                  "maxLength": 253,
+                  "pattern": "^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])(\\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9]))*$"
+                },
+                "tls": {
+                  "description": "The tls field provides the ability to configure certificates for the route.\nIgnored if Enabled is false.",
+                  "type": "object",
+                  "properties": {
+                    "caCertificate": {
+                      "description": "caCertificate provides the cert authority certificate contents",
+                      "type": "string"
+                    },
+                    "certificate": {
+                      "description": "certificate provides certificate contents. This should be a single serving certificate, not a certificate\nchain. Do not include a CA certificate.",
+                      "type": "string"
+                    },
+                    "externalCertificateSecretName": {
+                      "description": "ExternalCertificateSecretName provides certificate contents as a secret reference.\nThis should be a single serving certificate, not a certificate\nchain. Do not include a CA certificate. The secret referenced should\nbe present in the same namespace as that of the Route.\nForbidden when `certificate` is set.\nNote that securing Routes with external certificates in TLS secrets is a Technology Preview feature in OpenShift,\nand requires enabling the `RouteExternalCertificate` OpenShift Feature Gate and might not be functionally complete.",
+                      "type": "string"
+                    },
+                    "key": {
+                      "description": "key provides key file contents",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "database": {
+          "description": "Configuration for database access. Optional.",
+          "type": "object",
+          "properties": {
+            "authSecretName": {
+              "description": "Name of the secret for database authentication. Optional.\nFor a local database deployment (EnableLocalDb=true), a secret will be auto generated if it does not exist.\nThe secret shall include information used for the database access.\nAn example for PostgreSQL DB access:\n\"POSTGRES_PASSWORD\": \"rl4s3Fh4ng3M4\"\n\"POSTGRES_PORT\": \"5432\"\n\"POSTGRES_USER\": \"postgres\"\n\"POSTGRESQL_ADMIN_PASSWORD\": \"rl4s3Fh4ng3M4\"\n\"POSTGRES_HOST\": \"backstage-psql-bs1\"  # For local database, set to \"backstage-psql-<CR name>\".",
+              "type": "string"
+            },
+            "enableLocalDb": {
+              "description": "Control the creation of a local PostgreSQL DB. Set to false if using for example an external Database for Backstage.",
+              "type": "boolean"
+            }
+          }
+        },
+        "deployment": {
+          "description": "Valid fragment of Deployment to be merged with default/raw configuration.\nSet the Deployment's metadata and|or spec fields you want to override or add.\nOptional.",
+          "type": "object",
+          "properties": {
+            "kind": {
+              "description": "Kind of the deployment object. Can be Deployment or StatefulSet.",
+              "type": "string",
+              "enum": [
+                "Deployment",
+                "StatefulSet"
+              ]
+            },
+            "patch": {
+              "description": "Valid fragment of Deployment to be merged with default/raw configuration.\nSet the Deployment's metadata and|or spec fields you want to override or add.\nOptional.",
+              "x-kubernetes-preserve-unknown-fields": true
+            }
+          }
+        },
+        "flavours": {
+          "description": "Flavours specifies which pre-configured templates to enable.\nFlavours are variations of the default configuration that extend and override\nbase defaults with domain-specific customizations.\n\nIf not specified (nil), flavours with enabledByDefault: true in their metadata are used.\nIf specified as empty array ([]), default flavours are disabled.\nTo disable a default flavour, explicitly list it with enabled: false.\n\nMultiple flavours can be enabled - configs are merged in the order specified.",
+          "type": "array",
+          "items": {
+            "description": "Flavour represents a pre-configured template that extends the default configuration.\nFlavours provide domain-specific customizations (e.g., Orchestrator, Lightspeed)\nwhile falling back to base defaults for everything else.",
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "enabled": {
+                "description": "Enabled controls whether this flavour is active.\nDefaults to true when not specified.\nSet to false to explicitly disable a flavour (including default flavours).",
+                "type": "boolean"
+              },
+              "name": {
+                "description": "Name of the flavour to enable (e.g., \"orchestrator\", \"lightspeed\")",
+                "type": "string"
+              }
+            }
+          }
+        },
+        "monitoring": {
+          "description": "Monitoring config to enable ServiceMonitor for metrics",
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "description": "Enable ServiceMonitor for Prometheus scraping",
+              "type": "boolean"
+            }
+          }
+        },
+        "rawRuntimeConfig": {
+          "description": "Raw Runtime RuntimeObjects configuration. For Advanced scenarios.",
+          "type": "object",
+          "properties": {
+            "backstageConfig": {
+              "description": "Name of ConfigMap containing Backstage runtime objects configuration",
+              "type": "string"
+            },
+            "localDbConfig": {
+              "description": "Name of ConfigMap containing LocalDb (PostgreSQL) runtime objects configuration",
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "status": {
+      "description": "BackstageStatus defines the observed state of Backstage",
+      "type": "object",
+      "properties": {
+        "conditions": {
+          "description": "Conditions is the list of conditions describing the state of the runtime",
+          "type": "array",
+          "items": {
+            "description": "Condition contains details for one aspect of the current state of this API Resource.",
+            "type": "object",
+            "required": [
+              "lastTransitionTime",
+              "message",
+              "reason",
+              "status",
+              "type"
+            ],
+            "properties": {
+              "lastTransitionTime": {
+                "description": "lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.",
+                "type": "string",
+                "format": "date-time"
+              },
+              "message": {
+                "description": "message is a human readable message indicating details about the transition.\nThis may be an empty string.",
+                "type": "string",
+                "maxLength": 32768
+              },
+              "observedGeneration": {
+                "description": "observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.",
+                "type": "integer",
+                "format": "int64",
+                "minimum": 0
+              },
+              "reason": {
+                "description": "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
+                "type": "string",
+                "maxLength": 1024,
+                "minLength": 1,
+                "pattern": "^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$"
+              },
+              "status": {
+                "description": "status of the condition, one of True, False, Unknown.",
+                "type": "string",
+                "enum": [
+                  "True",
+                  "False",
+                  "Unknown"
+                ]
+              },
+              "type": {
+                "description": "type of condition in CamelCase or in foo.example.com/CamelCase.",
+                "type": "string",
+                "maxLength": 316,
+                "pattern": "^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "x-kubernetes-group-version-kind": [
+    {
+      "group": "rhdh.redhat.com",
+      "kind": "Backstage",
+      "version": "v1alpha5"
+    }
+  ],
+  "$schema": "http://json-schema.org/schema#"
+}

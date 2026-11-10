@@ -1,0 +1,70 @@
+{
+  "description": "MLflowConfig is a namespace-scoped configuration resource that allows\nKubernetes namespace owners to override the default artifact storage\nfor their namespace.",
+  "type": "object",
+  "required": [
+    "spec"
+  ],
+  "properties": {
+    "apiVersion": {
+      "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+      "type": "string"
+    },
+    "kind": {
+      "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+      "type": "string"
+    },
+    "metadata": {
+      "description": "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta"
+    },
+    "spec": {
+      "description": "spec defines the desired MLflow configuration for this namespace.",
+      "type": "object",
+      "required": [
+        "artifactRootSecret"
+      ],
+      "properties": {
+        "artifactRootPath": {
+          "description": "ArtifactRootPath is an optional relative path from the bucket root specified in\nthe ArtifactRootSecret. When provided, this path is appended to the bucket URI\nfrom the secret to form the resolved artifact root.\n\nExample:\n  artifactRootSecret: \"mlflow-artifact-connection\"  # Contains bucket: ds-team-bucket\n  artifactRootPath: \"experiments\"\n  resolved artifact root: s3://ds-team-bucket/experiments",
+          "type": "string",
+          "maxLength": 512,
+          "x-kubernetes-validations": [
+            {
+              "message": "artifactRootPath must be relative",
+              "rule": "self == '' || !self.startsWith('/')"
+            },
+            {
+              "message": "artifactRootPath must not contain '..' path segments",
+              "rule": "self == '' || !self.matches(r'(^|.*/)\\.\\.(|/.*)$')"
+            }
+          ]
+        },
+        "artifactRootSecret": {
+          "description": "ArtifactRootSecret is the name of a Secret in this namespace that contains\ncredentials and bucket information for accessing the artifact storage.\n\nThe Secret must have the required keys for s3 compatible storage:\nExample Secret:\n  apiVersion: v1\n  kind: Secret\n  metadata:\n    name: mlflow-artifact-connection\n    namespace: ds-team-namespace\n  data:\n    AWS_ACCESS_KEY_ID: <base64-encoded>\n    AWS_SECRET_ACCESS_KEY: <base64-encoded>\n    AWS_S3_BUCKET: <base64-encoded>\n    AWS_S3_ENDPOINT: <base64-encoded>\n    AWS_DEFAULT_REGION: <base64-encoded>  # Optional (default region is not always required, e.g. minio)",
+          "type": "string",
+          "minLength": 1,
+          "x-kubernetes-validations": [
+            {
+              "message": "artifactRootSecret must be 'mlflow-artifact-connection'",
+              "rule": "self == 'mlflow-artifact-connection'"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "x-kubernetes-group-version-kind": [
+    {
+      "group": "mlflow.kubeflow.org",
+      "kind": "MLflowConfig",
+      "version": "v1"
+    }
+  ],
+  "x-kubernetes-validations": [
+    {
+      "message": "MLflowConfig resource name must be 'mlflow'",
+      "rule": "self.metadata.name == 'mlflow'"
+    }
+  ],
+  "$schema": "http://json-schema.org/schema#"
+}

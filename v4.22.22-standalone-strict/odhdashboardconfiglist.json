@@ -1,0 +1,794 @@
+{
+  "description": "OdhDashboardConfigList is a list of OdhDashboardConfig",
+  "type": "object",
+  "required": [
+    "items"
+  ],
+  "properties": {
+    "apiVersion": {
+      "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+      "type": "string"
+    },
+    "items": {
+      "description": "List of odhdashboardconfigs. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "spec"
+        ],
+        "properties": {
+          "apiVersion": {
+            "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+            "type": "string"
+          },
+          "kind": {
+            "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+            "type": "string"
+          },
+          "metadata": {
+            "description": "ObjectMeta is metadata that all persisted resources must have, which includes all objects users must create.",
+            "type": "object",
+            "properties": {
+              "annotations": {
+                "description": "Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations",
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "creationTimestamp": {
+                "description": "Time is a wrapper around time.Time which supports correct marshaling to YAML and JSON.  Wrappers are provided for many of the factory methods that the time package offers.",
+                "type": "string",
+                "format": "date-time"
+              },
+              "deletionGracePeriodSeconds": {
+                "description": "Number of seconds allowed for this object to gracefully terminate before it will be removed from the system. Only set when deletionTimestamp is also set. May only be shortened. Read-only.",
+                "type": "integer",
+                "format": "int64"
+              },
+              "deletionTimestamp": {
+                "description": "Time is a wrapper around time.Time which supports correct marshaling to YAML and JSON.  Wrappers are provided for many of the factory methods that the time package offers.",
+                "type": "string",
+                "format": "date-time"
+              },
+              "finalizers": {
+                "description": "Must be empty before the object is deleted from the registry. Each entry is an identifier for the responsible component that will remove the entry from the list. If the deletionTimestamp of the object is non-nil, entries in this list can only be removed. Finalizers may be processed and removed in any order.  Order is NOT enforced because it introduces significant risk of stuck finalizers. finalizers is a shared field, any actor with permission can reorder it. If the finalizer list is processed in order, then this can lead to a situation in which the component responsible for the first finalizer in the list is waiting for a signal (field value, external system, or other) produced by a component responsible for a finalizer later in the list, resulting in a deadlock. Without enforced ordering finalizers are free to order amongst themselves and are not vulnerable to ordering changes in the list.",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "x-kubernetes-list-type": "set",
+                "x-kubernetes-patch-strategy": "merge"
+              },
+              "generateName": {
+                "description": "GenerateName is an optional prefix, used by the server, to generate a unique name ONLY IF the Name field has not been provided. If this field is used, the name returned to the client will be different than the name passed. This value will also be combined with a unique suffix. The provided value has the same validation rules as the Name field, and may be truncated by the length of the suffix required to make the value unique on the server.\n\nIf this field is specified and the generated name exists, the server will return a 409.\n\nApplied only if Name is not specified. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#idempotency",
+                "type": "string"
+              },
+              "generation": {
+                "description": "A sequence number representing a specific generation of the desired state. Populated by the system. Read-only.",
+                "type": "integer",
+                "format": "int64"
+              },
+              "labels": {
+                "description": "Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels",
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "managedFields": {
+                "description": "ManagedFields maps workflow-id and version to the set of fields that are managed by that workflow. This is mostly for internal housekeeping, and users typically shouldn't need to set or understand this field. A workflow can be the user's name, a controller's name, or the name of a specific apply path like \"ci-cd\". The set of fields is always in the version that the workflow used when modifying the object.",
+                "type": "array",
+                "items": {
+                  "description": "ManagedFieldsEntry is a workflow-id, a FieldSet and the group version of the resource that the fieldset applies to.",
+                  "type": "object",
+                  "properties": {
+                    "apiVersion": {
+                      "description": "APIVersion defines the version of this resource that this field set applies to. The format is \"group/version\" just like the top-level APIVersion field. It is necessary to track the version of a field set because it cannot be automatically converted.",
+                      "type": "string"
+                    },
+                    "fieldsType": {
+                      "description": "FieldsType is the discriminator for the different fields format and version. There is currently only one possible value: \"FieldsV1\"",
+                      "type": "string"
+                    },
+                    "fieldsV1": {
+                      "description": "FieldsV1 stores a set of fields in a data structure like a Trie, in JSON format.\n\nEach key is either a '.' representing the field itself, and will always map to an empty set, or a string representing a sub-field or item. The string will follow one of these four formats: 'f:<name>', where <name> is the name of a field in a struct, or key in a map 'v:<value>', where <value> is the exact json formatted value of a list item 'i:<index>', where <index> is position of a item in a list 'k:<keys>', where <keys> is a map of  a list item's key fields to their unique values If a key maps to an empty Fields value, the field that key represents is part of the set.\n\nThe exact format is defined in sigs.k8s.io/structured-merge-diff",
+                      "type": "object"
+                    },
+                    "manager": {
+                      "description": "Manager is an identifier of the workflow managing these fields.",
+                      "type": "string"
+                    },
+                    "operation": {
+                      "description": "Operation is the type of operation which lead to this ManagedFieldsEntry being created. The only valid values for this field are 'Apply' and 'Update'.",
+                      "type": "string"
+                    },
+                    "subresource": {
+                      "description": "Subresource is the name of the subresource used to update that object, or empty string if the object was updated through the main resource. The value of this field is used to distinguish between managers, even if they share the same name. For example, a status update will be distinct from a regular update using the same manager name. Note that the APIVersion field is not related to the Subresource field and it always corresponds to the version of the main resource.",
+                      "type": "string"
+                    },
+                    "time": {
+                      "description": "Time is a wrapper around time.Time which supports correct marshaling to YAML and JSON.  Wrappers are provided for many of the factory methods that the time package offers.",
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "x-kubernetes-list-type": "atomic"
+              },
+              "name": {
+                "description": "Name must be unique within a namespace. Is required when creating resources, although some resources may allow a client to request the generation of an appropriate name automatically. Name is primarily intended for creation idempotence and configuration definition. Cannot be updated. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#names",
+                "type": "string"
+              },
+              "namespace": {
+                "description": "Namespace defines the space within which each name must be unique. An empty namespace is equivalent to the \"default\" namespace, but \"default\" is the canonical representation. Not all objects are required to be scoped to a namespace - the value of this field for those objects will be empty.\n\nMust be a DNS_LABEL. Cannot be updated. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces",
+                "type": "string"
+              },
+              "ownerReferences": {
+                "description": "List of objects depended by this object. If ALL objects in the list have been deleted, this object will be garbage collected. If this object is managed by a controller, then an entry in this list will point to this controller, with the controller field set to true. There cannot be more than one managing controller.",
+                "type": "array",
+                "items": {
+                  "description": "OwnerReference contains enough information to let you identify an owning object. An owning object must be in the same namespace as the dependent, or be cluster-scoped, so there is no namespace field.",
+                  "type": "object",
+                  "required": [
+                    "apiVersion",
+                    "kind",
+                    "name",
+                    "uid"
+                  ],
+                  "properties": {
+                    "apiVersion": {
+                      "description": "API version of the referent.",
+                      "type": "string"
+                    },
+                    "blockOwnerDeletion": {
+                      "description": "If true, AND if the owner has the \"foregroundDeletion\" finalizer, then the owner cannot be deleted from the key-value store until this reference is removed. See https://kubernetes.io/docs/concepts/architecture/garbage-collection/#foreground-deletion for how the garbage collector interacts with this field and enforces the foreground deletion. Defaults to false. To set this field, a user needs \"delete\" permission of the owner, otherwise 422 (Unprocessable Entity) will be returned.",
+                      "type": "boolean"
+                    },
+                    "controller": {
+                      "description": "If true, this reference points to the managing controller.",
+                      "type": "boolean"
+                    },
+                    "kind": {
+                      "description": "Kind of the referent. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+                      "type": "string"
+                    },
+                    "name": {
+                      "description": "Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#names",
+                      "type": "string"
+                    },
+                    "uid": {
+                      "description": "UID of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#uids",
+                      "type": "string"
+                    }
+                  },
+                  "x-kubernetes-map-type": "atomic",
+                  "additionalProperties": false
+                },
+                "x-kubernetes-list-map-keys": [
+                  "uid"
+                ],
+                "x-kubernetes-list-type": "map",
+                "x-kubernetes-patch-merge-key": "uid",
+                "x-kubernetes-patch-strategy": "merge"
+              },
+              "resourceVersion": {
+                "description": "An opaque value that represents the internal version of this object that can be used by clients to determine when objects have changed. May be used for optimistic concurrency, change detection, and the watch operation on a resource or set of resources. Clients must treat these values as opaque and passed unmodified back to the server. They may only be valid for a particular resource or set of resources.\n\nPopulated by the system. Read-only. Value must be treated as opaque by clients and . More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency",
+                "type": "string"
+              },
+              "selfLink": {
+                "description": "Deprecated: selfLink is a legacy read-only field that is no longer populated by the system.",
+                "type": "string"
+              },
+              "uid": {
+                "description": "UID is the unique in time and space value for this object. It is typically generated by the server on successful creation of a resource and is not allowed to change on PUT operations.\n\nPopulated by the system. Read-only. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#uids",
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          "spec": {
+            "type": "object",
+            "properties": {
+              "dashboardConfig": {
+                "description": "Feature flag configurations; intended to just contain overrides",
+                "type": "object",
+                "properties": {
+                  "agentConfigManagement": {
+                    "description": "When true, enables agent configuration management features in the Gen AI Studio.",
+                    "type": "boolean"
+                  },
+                  "agentOps": {
+                    "description": "When true, enables the Agent Ops features in the Gen AI Studio.",
+                    "type": "boolean"
+                  },
+                  "agentsCatalog": {
+                    "description": "When true, enables the Agents Catalog page.",
+                    "type": "boolean"
+                  },
+                  "aiAssetCustomEndpoints": {
+                    "description": "When true, enables custom endpoint configuration for AI assets.",
+                    "type": "boolean"
+                  },
+                  "automl": {
+                    "description": "When true, enables the AutoML (Automated Machine Learning) features.",
+                    "type": "boolean"
+                  },
+                  "autorag": {
+                    "description": "When true, enables the AutoRAG (Automated Retrieval-Augmented Generation) features.",
+                    "type": "boolean"
+                  },
+                  "connectionTest": {
+                    "description": "When true, enables connection test functionality to verify credentials and connectivity for S3, URI, and OCI connections.",
+                    "type": "boolean"
+                  },
+                  "deploymentWizardYAMLViewer": {
+                    "description": "When true, enables the YAML viewer in the model deployment wizard.",
+                    "type": "boolean"
+                  },
+                  "disableAcceleratorProfiles": {
+                    "description": "DEPRECATED: Accelerator Profiles are replaced by Hardware Profiles. This field will be removed in a future version.",
+                    "type": "boolean"
+                  },
+                  "disableAdminConnectionTypes": {
+                    "description": "When true, hides the Connection Types administration page.",
+                    "type": "boolean"
+                  },
+                  "disableBYONImageStream": {
+                    "description": "When true, hides the Notebook images (Bring Your Own Notebook) administration page.",
+                    "type": "boolean"
+                  },
+                  "disableClusterManager": {
+                    "description": "When true, hides the Cluster Settings page from the dashboard navigation.",
+                    "type": "boolean"
+                  },
+                  "disableCustomServingRuntimes": {
+                    "description": "When true, hides the Serving Runtimes administration page for managing custom runtimes.",
+                    "type": "boolean"
+                  },
+                  "disableDistributedWorkloads": {
+                    "description": "When true, hides the Distributed Workloads pages from the dashboard navigation.",
+                    "type": "boolean"
+                  },
+                  "disableFeatureStore": {
+                    "description": "When true, hides the Feature Store pages from the dashboard navigation.",
+                    "type": "boolean"
+                  },
+                  "disableFineTuning": {
+                    "description": "DEPRECATED: This field is no longer used and will be removed in a future version.",
+                    "type": "boolean"
+                  },
+                  "disableHardwareProfiles": {
+                    "description": "DEPRECATED: Hardware Profiles are GA and cannot be disabled via this field. This field will be removed in a future version.",
+                    "type": "boolean"
+                  },
+                  "disableHome": {
+                    "description": "When true, hides the Home page from the dashboard navigation.",
+                    "type": "boolean"
+                  },
+                  "disableISVBadges": {
+                    "description": "When true, hides ISV partner badges on application cards.",
+                    "type": "boolean"
+                  },
+                  "disableInfo": {
+                    "description": "When true, hides the information panel for applications on the Explore page.",
+                    "type": "boolean"
+                  },
+                  "disableKServe": {
+                    "description": "When true, disables KServe single-model serving platform features.",
+                    "type": "boolean"
+                  },
+                  "disableKServeAuth": {
+                    "description": "When true, disables token authentication configuration for KServe deployments.",
+                    "type": "boolean"
+                  },
+                  "disableKServeMetrics": {
+                    "description": "When true, hides the metrics tab for KServe model deployments.",
+                    "type": "boolean"
+                  },
+                  "disableKServeRaw": {
+                    "description": "When true, disables the raw (non-serverless) deployment mode for KServe.",
+                    "type": "boolean"
+                  },
+                  "disableKueue": {
+                    "description": "When true, disables Kueue workload queue management features.",
+                    "type": "boolean"
+                  },
+                  "disableLLMd": {
+                    "description": "When true, disables the LLMd (Large Language Model daemon) serving features on KServe.",
+                    "type": "boolean"
+                  },
+                  "disableLMEval": {
+                    "description": "When true, disables the Language Model Evaluation (LM Eval) features.",
+                    "type": "boolean"
+                  },
+                  "disableModelCatalog": {
+                    "description": "When true, hides the Model Catalog page from the dashboard navigation.",
+                    "type": "boolean"
+                  },
+                  "disableModelMesh": {
+                    "description": "DEPRECATED: ModelMesh has been removed. This field will be removed in a future version.",
+                    "type": "boolean"
+                  },
+                  "disableModelRegistry": {
+                    "description": "When true, hides the Model Registry pages from the dashboard navigation.",
+                    "type": "boolean"
+                  },
+                  "disableModelRegistrySecureDB": {
+                    "description": "When true, hides the secure database connection options in the Model Registry settings.",
+                    "type": "boolean"
+                  },
+                  "disableModelServing": {
+                    "description": "When true, hides the Model Serving pages and disables model deployment features.",
+                    "type": "boolean"
+                  },
+                  "disableNIMModelServing": {
+                    "description": "When true, disables NVIDIA NIM model serving features.",
+                    "type": "boolean"
+                  },
+                  "disablePerformanceMetrics": {
+                    "description": "When true, hides performance metrics on model serving pages.",
+                    "type": "boolean"
+                  },
+                  "disablePipelines": {
+                    "description": "When true, hides the Data Science Pipelines pages and disables pipeline features.",
+                    "type": "boolean"
+                  },
+                  "disableProjectScoped": {
+                    "description": "When true, disables project-scoped resource management, such as project-level hardware profiles, workbench images, and serving runtime templates.",
+                    "type": "boolean"
+                  },
+                  "disableProjectSharing": {
+                    "description": "When true, hides the project sharing and permissions tab within the Project details.",
+                    "type": "boolean"
+                  },
+                  "disableProjects": {
+                    "description": "When true, hides the Projects page from the dashboard navigation.",
+                    "type": "boolean"
+                  },
+                  "disableServingRuntimeParams": {
+                    "description": "When true, hides the runtime parameters configuration on KServe model deployment forms.",
+                    "type": "boolean"
+                  },
+                  "disableStorageClasses": {
+                    "description": "When true, hides the Storage Classes administration page.",
+                    "type": "boolean"
+                  },
+                  "disableSupport": {
+                    "description": "When true, hides the support link from the dashboard toolbar.",
+                    "type": "boolean"
+                  },
+                  "disableTracking": {
+                    "description": "When true, disables usage analytics and telemetry tracking in the dashboard.",
+                    "type": "boolean"
+                  },
+                  "disableTrustyBiasMetrics": {
+                    "description": "When true, hides the TrustyAI bias metrics tab on model serving pages.",
+                    "type": "boolean"
+                  },
+                  "disableUserManagement": {
+                    "description": "When true, hides the User Management administration page.",
+                    "type": "boolean"
+                  },
+                  "enablement": {
+                    "description": "When true, enables the ability to install and manage ISV applications from the Explore page.",
+                    "type": "boolean"
+                  },
+                  "externalModels": {
+                    "description": "When true, enables the external models page.",
+                    "type": "boolean"
+                  },
+                  "externalVectorStores": {
+                    "description": "When true, enables external vector store integration for RAG workflows.",
+                    "type": "boolean"
+                  },
+                  "featureStoreAdmin": {
+                    "description": "When true, enables the Feature Store admin UI (create wizard, manage page).",
+                    "type": "boolean"
+                  },
+                  "genAiStudio": {
+                    "description": "When true, enables the Gen AI Studio plugin for generative AI features.",
+                    "type": "boolean"
+                  },
+                  "genAiTracing": {
+                    "description": "When true, enables tracing support in the Gen AI Studio playground.",
+                    "type": "boolean"
+                  },
+                  "globalProjectPrompts": {
+                    "description": "When true, enables the global project setting for prompts in cluster settings.",
+                    "type": "boolean"
+                  },
+                  "gpuaas": {
+                    "description": "When true, enables the GPUaaS Infrastructure page for cluster capacity and accelerator utilization monitoring.",
+                    "type": "boolean"
+                  },
+                  "guardrails": {
+                    "description": "When true, enables guardrails configuration for model deployments.",
+                    "type": "boolean"
+                  },
+                  "llmGatewayField": {
+                    "description": "When true, shows the LLM gateway configuration field for generative AI model deployments that support gateway selections.",
+                    "type": "boolean"
+                  },
+                  "llmdTemplates": {
+                    "description": "When true, enables llm-d topology and routing configuration fields in the deployment wizard and admin settings pages. Tech Preview.",
+                    "type": "boolean"
+                  },
+                  "maasAuthPolicies": {
+                    "description": "DEPRECATED: This field is no longer used and will be removed in a future version.",
+                    "type": "boolean"
+                  },
+                  "mcpCatalog": {
+                    "description": "When true, enables the MCP (Model Context Protocol) Catalog page.",
+                    "type": "boolean"
+                  },
+                  "mcpRegistry": {
+                    "description": "When true, enables the MCP (Model Context Protocol) Registry tab within the MCP Servers page.",
+                    "type": "boolean"
+                  },
+                  "mlflow": {
+                    "description": "DEPRECATED: MLflow is now always enabled when the operator component is present. This field will be removed in a future version.",
+                    "type": "boolean"
+                  },
+                  "modelAsService": {
+                    "description": "When true, enables Model-as-a-Service (MaaS) features for managed model deployments.",
+                    "type": "boolean"
+                  },
+                  "observabilityDashboard": {
+                    "description": "When true, enables the observability dashboard features.",
+                    "type": "boolean"
+                  },
+                  "projectRBAC": {
+                    "description": "When true, enables project-level RBAC (Role-Based Access Control) settings.",
+                    "type": "boolean"
+                  },
+                  "promptManagement": {
+                    "description": "When true, enables prompt management features.",
+                    "type": "boolean"
+                  },
+                  "roleManagement": {
+                    "description": "When true, enables project role management features for custom RBAC roles.",
+                    "type": "boolean"
+                  },
+                  "toolCalling": {
+                    "description": "When true, enables tool-calling configuration for supported models in the model catalog.",
+                    "type": "boolean"
+                  },
+                  "trainingJobs": {
+                    "description": "When true, enables model training job and Ray job features.",
+                    "type": "boolean"
+                  },
+                  "vLLMDeploymentOnMaaS": {
+                    "description": "When true, enables vLLM deployment options in the model serving deployment wizard for generative AI model deployments.",
+                    "type": "boolean"
+                  }
+                },
+                "x-kubernetes-validations": [
+                  {
+                    "message": "DEPRECATED: spec.dashboardConfig.disableAcceleratorProfiles must be removed or left unchanged.",
+                    "rule": "!has(self.disableAcceleratorProfiles) || self.disableAcceleratorProfiles == oldSelf.disableAcceleratorProfiles"
+                  },
+                  {
+                    "message": "DEPRECATED: spec.dashboardConfig.disableHardwareProfiles must be removed or left unchanged.",
+                    "rule": "!has(self.disableHardwareProfiles) || self.disableHardwareProfiles == oldSelf.disableHardwareProfiles"
+                  },
+                  {
+                    "message": "DEPRECATED: spec.dashboardConfig.disableFineTuning must be removed or left unchanged.",
+                    "rule": "!has(self.disableFineTuning) || self.disableFineTuning == oldSelf.disableFineTuning"
+                  },
+                  {
+                    "message": "DEPRECATED: spec.dashboardConfig.mlflow must be removed or left unchanged.",
+                    "rule": "!has(self.mlflow) || (has(oldSelf.mlflow) && self.mlflow == oldSelf.mlflow)"
+                  },
+                  {
+                    "message": "DEPRECATED: spec.dashboardConfig.maasAuthPolicies must be removed or left unchanged.",
+                    "rule": "!has(self.maasAuthPolicies) || self.maasAuthPolicies == oldSelf.maasAuthPolicies"
+                  }
+                ],
+                "additionalProperties": false
+              },
+              "genAiStudioConfig": {
+                "description": "Configuration options for Gen AI Studio features",
+                "type": "object",
+                "properties": {
+                  "aiAssetCustomEndpoints": {
+                    "description": "Configuration for AI Asset custom endpoints feature",
+                    "type": "object",
+                    "properties": {
+                      "clusterDomains": {
+                        "description": "List of DNS domains for cluster-local services (e.g., [\"cluster.local\", \"prod.local\"]). Used to identify internal Kubernetes services vs external providers.",
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "externalProviders": {
+                        "description": "Allow users to configure external LLM providers (e.g., OpenAI, Gemini, Anthropic)",
+                        "type": "boolean"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              },
+              "globalMLflowNamespaces": {
+                "description": "List of namespaces designated as global MLflow workspaces for shared resources. Currently limited to a single namespace.",
+                "type": "array",
+                "maxItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "groupsConfig": {
+                "description": "Ignored -- See \"Auth\" Resource",
+                "type": "object",
+                "required": [
+                  "adminGroups",
+                  "allowedGroups"
+                ],
+                "properties": {
+                  "adminGroups": {
+                    "type": "string"
+                  },
+                  "allowedGroups": {
+                    "type": "string"
+                  }
+                },
+                "x-kubernetes-validations": [
+                  {
+                    "message": "Can no longer modify group configurations here, see the Auth resource instead",
+                    "rule": "self == oldSelf"
+                  }
+                ],
+                "additionalProperties": false
+              },
+              "hardwareProfileOrder": {
+                "description": "Ordered list of hardware profile names controlling their display order.",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "modelServerSizes": {
+                "description": "DEPRECATED: Please use Hardware Profiles instead. This field will be removed in a future version.",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "name",
+                    "resources"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "resources": {
+                      "type": "object",
+                      "properties": {
+                        "limits": {
+                          "type": "object",
+                          "properties": {
+                            "cpu": {
+                              "type": "string"
+                            },
+                            "memory": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "requests": {
+                          "type": "object",
+                          "properties": {
+                            "cpu": {
+                              "type": "string"
+                            },
+                            "memory": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "x-kubernetes-validations": [
+                  {
+                    "message": "This field is DEPRECATED and must either be removed or left unchanged. Please use Hardware Profiles instead.",
+                    "rule": "self == oldSelf"
+                  }
+                ]
+              },
+              "modelServing": {
+                "description": "Configuration options for model serving deployments.",
+                "type": "object",
+                "properties": {
+                  "deploymentStrategy": {
+                    "description": "Kubernetes deployment strategy for model servers.",
+                    "type": "string",
+                    "enum": [
+                      "rolling",
+                      "recreate"
+                    ]
+                  },
+                  "isLLMdDefault": {
+                    "description": "When true, pre-selects LLMd as the suggested serving platform in the model deployment wizard.",
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "notebookController": {
+                "description": "Jupyter tile configurations",
+                "type": "object",
+                "required": [
+                  "enabled"
+                ],
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "notebookNamespace": {
+                    "type": "string",
+                    "x-kubernetes-validations": [
+                      {
+                        "message": "Can no longer modify notebookNamespace here",
+                        "rule": "self == oldSelf"
+                      }
+                    ]
+                  },
+                  "notebookTolerationSettings": {
+                    "description": "DEPRECATED: Please use Hardware Profiles to set tolerations instead. This field will be removed in a future version.",
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean"
+                      },
+                      "key": {
+                        "type": "string"
+                      }
+                    },
+                    "x-kubernetes-validations": [
+                      {
+                        "message": "This field is DEPRECATED and must either be removed or left unchanged. Please use Hardware Profiles to set tolerations instead.",
+                        "rule": "self == oldSelf"
+                      }
+                    ],
+                    "additionalProperties": false
+                  },
+                  "pvcSize": {
+                    "type": "string"
+                  },
+                  "storageClassName": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "notebookSizes": {
+                "description": "DEPRECATED: Please use Hardware Profiles instead. This field will be removed in a future version.",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "name",
+                    "resources"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "resources": {
+                      "type": "object",
+                      "properties": {
+                        "limits": {
+                          "type": "object",
+                          "properties": {
+                            "cpu": {
+                              "type": "string"
+                            },
+                            "memory": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "requests": {
+                          "type": "object",
+                          "properties": {
+                            "cpu": {
+                              "type": "string"
+                            },
+                            "memory": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "x-kubernetes-validations": [
+                  {
+                    "message": "This field is DEPRECATED and must either be removed or left unchanged. Please use Hardware Profiles instead.",
+                    "rule": "self == oldSelf"
+                  }
+                ]
+              },
+              "templateDisablement": {
+                "description": "List of serving runtime template names to hide across the dashboard, including the Custom Serving Runtimes admin page and the model deployment wizard.",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "templateOrder": {
+                "description": "Ordered list of serving runtime template names controlling their display order across the dashboard, including the Custom Serving Runtimes admin page and the model deployment wizard.",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "x-kubernetes-group-version-kind": [
+          {
+            "group": "opendatahub.io",
+            "kind": "OdhDashboardConfig",
+            "version": "v1alpha"
+          }
+        ],
+        "additionalProperties": false
+      }
+    },
+    "kind": {
+      "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+      "type": "string"
+    },
+    "metadata": {
+      "description": "ListMeta describes metadata that synthetic resources must have, including lists and various status objects. A resource may have only one of {ObjectMeta, ListMeta}.",
+      "type": "object",
+      "properties": {
+        "continue": {
+          "description": "continue may be set if the user set a limit on the number of items returned, and indicates that the server has more data available. The value is opaque and may be used to issue another request to the endpoint that served this list to retrieve the next set of available objects. Continuing a consistent list may not be possible if the server configuration has changed or more than a few minutes have passed. The resourceVersion field returned when using this continue value will be identical to the value in the first response, unless you have received this token from an error message.",
+          "type": "string"
+        },
+        "remainingItemCount": {
+          "description": "remainingItemCount is the number of subsequent items in the list which are not included in this list response. If the list request contained label or field selectors, then the number of remaining items is unknown and the field will be left unset and omitted during serialization. If the list is complete (either because it is not chunking or because this is the last chunk), then there are no more remaining items and this field will be left unset and omitted during serialization. Servers older than v1.15 do not set this field. The intended use of the remainingItemCount is *estimating* the size of a collection. Clients should not rely on the remainingItemCount to be set or to be exact.",
+          "type": "integer",
+          "format": "int64"
+        },
+        "resourceVersion": {
+          "description": "String that identifies the server's internal version of this object that can be used by clients to determine when objects have changed. Value must be treated as opaque by clients and passed unmodified back to the server. Populated by the system. Read-only. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency",
+          "type": "string"
+        },
+        "selfLink": {
+          "description": "Deprecated: selfLink is a legacy read-only field that is no longer populated by the system.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "x-kubernetes-group-version-kind": [
+    {
+      "group": "opendatahub.io",
+      "kind": "OdhDashboardConfigList",
+      "version": "v1alpha"
+    }
+  ],
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

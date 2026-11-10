@@ -1,0 +1,92 @@
+{
+  "description": "Schema validation for the AnsibleMCPConnectRestore CRD",
+  "type": "object",
+  "properties": {
+    "apiVersion": {
+      "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+      "type": "string"
+    },
+    "kind": {
+      "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+      "type": "string"
+    },
+    "metadata": {
+      "description": "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta"
+    },
+    "spec": {
+      "type": "object",
+      "required": [
+        "deployment_name"
+      ],
+      "properties": {
+        "backup_dir": {
+          "description": "Backup directory name on the PVC",
+          "type": "string"
+        },
+        "backup_name": {
+          "description": "AnsibleMCPConnectBackup CR name to restore from",
+          "type": "string"
+        },
+        "backup_pvc": {
+          "description": "PVC containing the backup",
+          "type": "string"
+        },
+        "deployment_name": {
+          "description": "Name of the AnsibleMCPConnect deployment to restore",
+          "type": "string"
+        },
+        "no_log": {
+          "description": "Suppress logging of sensitive data",
+          "type": "boolean"
+        },
+        "set_self_labels": {
+          "description": "Maintain recommended labels",
+          "type": "boolean"
+        },
+        "spec_overrides": {
+          "description": "Overrides for the AnsibleMCPConnect spec",
+          "x-kubernetes-preserve-unknown-fields": true
+        }
+      }
+    },
+    "status": {
+      "type": "object",
+      "properties": {
+        "conditions": {
+          "description": "Status conditions",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "lastTransitionTime": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "restoreComplete": {
+          "description": "Flag indicating restore completion",
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  "x-kubernetes-group-version-kind": [
+    {
+      "group": "mcpserver.ansible.com",
+      "kind": "AnsibleMCPServerRestore",
+      "version": "v1alpha1"
+    }
+  ],
+  "$schema": "http://json-schema.org/schema#"
+}

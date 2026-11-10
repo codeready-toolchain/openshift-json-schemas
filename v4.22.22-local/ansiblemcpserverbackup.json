@@ -1,0 +1,100 @@
+{
+  "description": "Schema validation for the AnsibleMCPConnectBackup CRD",
+  "type": "object",
+  "properties": {
+    "apiVersion": {
+      "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+      "type": "string"
+    },
+    "kind": {
+      "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+      "type": "string"
+    },
+    "metadata": {
+      "description": "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta"
+    },
+    "spec": {
+      "type": "object",
+      "required": [
+        "deployment_name"
+      ],
+      "properties": {
+        "backup_pvc": {
+          "description": "Name of the PVC to store the backup",
+          "type": "string"
+        },
+        "backup_pvc_namespace": {
+          "description": "Namespace the PVC is in",
+          "type": "string"
+        },
+        "backup_storage_class": {
+          "description": "Storage class to use when creating PVC for backup",
+          "type": "string"
+        },
+        "backup_storage_requirements": {
+          "description": "Storage requirements for the backup PVC",
+          "type": "string"
+        },
+        "clean_backup_on_delete": {
+          "description": "Flag to indicate if backup should be deleted on PVC if backup object is deleted",
+          "type": "boolean"
+        },
+        "deployment_name": {
+          "description": "Name of the AnsibleMCPConnect deployment to be backed up",
+          "type": "string"
+        },
+        "no_log": {
+          "description": "Suppress logging of sensitive data",
+          "type": "boolean"
+        },
+        "set_self_labels": {
+          "description": "Maintain recommended labels",
+          "type": "boolean"
+        }
+      }
+    },
+    "status": {
+      "type": "object",
+      "properties": {
+        "backupClaim": {
+          "description": "Backup PVC name",
+          "type": "string"
+        },
+        "backupDirectory": {
+          "description": "Backup directory name on the PVC",
+          "type": "string"
+        },
+        "conditions": {
+          "description": "Status conditions",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "lastTransitionTime": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "x-kubernetes-group-version-kind": [
+    {
+      "group": "mcpserver.ansible.com",
+      "kind": "AnsibleMCPServerBackup",
+      "version": "v1alpha1"
+    }
+  ],
+  "$schema": "http://json-schema.org/schema#"
+}

@@ -1,0 +1,54 @@
+{
+  "description": "ClawOperatorConfig is the Schema for the clawoperatorconfigs API. A single\ninstance named \"cluster\" must live in the operator's own runtime namespace\n(resolved via the WATCH_NAMESPACE environment variable) \u2014 it is never\nlooked up in, or honored from, a tenant namespace. The name is enforced\nat admission time by the XValidation rule above (ClawOperatorConfigSingletonName).",
+  "type": "object",
+  "required": [
+    "spec"
+  ],
+  "properties": {
+    "apiVersion": {
+      "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+      "type": "string"
+    },
+    "kind": {
+      "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+      "type": "string"
+    },
+    "metadata": {
+      "description": "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta"
+    },
+    "spec": {
+      "description": "ClawOperatorConfigSpec defines cluster-admin policy for the claw-operator.",
+      "type": "object",
+      "properties": {
+        "allowedConfigModes": {
+          "description": "AllowedConfigModes restricts which spec.config.mergeMode values Claw CRs\nin this cluster may use. Empty/absent means all modes are allowed\n(fail-open) \u2014 this matches today's unrestricted behavior until an admin\nexplicitly opts in to restricting it.",
+          "type": "array",
+          "items": {
+            "description": "ConfigMode controls how operator.json is merged into the user's openclaw.json\nat pod start time. Not to be confused with SeedMode below, which governs\nper-file workspace seeding (spec.workspace.*.mode) \u2014 ConfigMode governs the\nwhole openclaw.json file (spec.config.mergeMode).",
+            "type": "string",
+            "enum": [
+              "merge",
+              "overwrite",
+              "seedOnly"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "x-kubernetes-group-version-kind": [
+    {
+      "group": "claw.sandbox.redhat.com",
+      "kind": "ClawOperatorConfig",
+      "version": "v1alpha1"
+    }
+  ],
+  "x-kubernetes-validations": [
+    {
+      "message": "ClawOperatorConfig must be named 'cluster'",
+      "rule": "self.metadata.name == 'cluster'"
+    }
+  ],
+  "$schema": "http://json-schema.org/schema#"
+}

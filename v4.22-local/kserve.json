@@ -1,0 +1,314 @@
+{
+  "type": "object",
+  "properties": {
+    "apiVersion": {
+      "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+      "type": "string"
+    },
+    "kind": {
+      "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+      "type": "string"
+    },
+    "metadata": {
+      "description": "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta"
+    },
+    "spec": {
+      "type": "object",
+      "properties": {
+        "enableLLMInferenceServiceConsoleDashboards": {
+          "description": "Enables OpenShift Developer Console dashboards for LLMInferenceService.\nEnabled by default.",
+          "type": "boolean"
+        },
+        "enableLLMInferenceServiceTLS": {
+          "description": "Enables TLS for LLMInferenceService deployments.\nWhen unset, the KServe default (TLS enabled) is preserved.",
+          "type": "boolean"
+        },
+        "managementState": {
+          "description": "ManagementState controls whether the operator actively manages the\ncomponent (Managed) or removes it (Removed).",
+          "type": "string",
+          "enum": [
+            "Managed",
+            "Removed"
+          ]
+        },
+        "modelCache": {
+          "type": "object",
+          "properties": {
+            "cacheSize": {
+              "pattern": "^(\\+|-)?(([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\\+|-)?(([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))))?$",
+              "x-kubernetes-int-or-string": true
+            },
+            "managementState": {
+              "description": "ManagementState defines whether a component is actively managed by the\noperator or scheduled for removal.",
+              "type": "string",
+              "enum": [
+                "Managed",
+                "Removed"
+              ]
+            },
+            "nodeNames": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "nodeSelector": {
+              "description": "A label selector is a label query over a set of resources. The result of matchLabels and\nmatchExpressions are ANDed. An empty label selector matches all objects. A null\nlabel selector matches no objects.",
+              "type": "object",
+              "properties": {
+                "matchExpressions": {
+                  "description": "matchExpressions is a list of label selector requirements. The requirements are ANDed.",
+                  "type": "array",
+                  "items": {
+                    "description": "A label selector requirement is a selector that contains values, a key, and an operator that\nrelates the key and values.",
+                    "type": "object",
+                    "required": [
+                      "key",
+                      "operator"
+                    ],
+                    "properties": {
+                      "key": {
+                        "description": "key is the label key that the selector applies to.",
+                        "type": "string"
+                      },
+                      "operator": {
+                        "description": "operator represents a key's relationship to a set of values.\nValid operators are In, NotIn, Exists and DoesNotExist.",
+                        "type": "string"
+                      },
+                      "values": {
+                        "description": "values is an array of string values. If the operator is In or NotIn,\nthe values array must be non-empty. If the operator is Exists or DoesNotExist,\nthe values array must be empty. This array is replaced during a strategic\nmerge patch.",
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "x-kubernetes-list-type": "atomic"
+                      }
+                    }
+                  },
+                  "x-kubernetes-list-type": "atomic"
+                },
+                "matchLabels": {
+                  "description": "matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels\nmap is equivalent to an element of matchExpressions, whose key field is \"key\", the\noperator is \"In\", and the values array contains only \"value\". The requirements are ANDed.",
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              },
+              "x-kubernetes-map-type": "atomic"
+            }
+          },
+          "x-kubernetes-validations": [
+            {
+              "message": "cacheSize is required when managementState is Managed",
+              "rule": "self.managementState != 'Managed' || has(self.cacheSize)"
+            },
+            {
+              "message": "one non-empty nodeNames or nodeSelector is required when managementState is Managed",
+              "rule": "self.managementState != 'Managed' || (has(self.nodeNames) && size(self.nodeNames) > 0) || (has(self.nodeSelector) && ((has(self.nodeSelector.matchLabels) && size(self.nodeSelector.matchLabels) > 0) || (has(self.nodeSelector.matchExpressions) && size(self.nodeSelector.matchExpressions) > 0)))"
+            },
+            {
+              "message": "nodeNames and nodeSelector are mutually exclusive",
+              "rule": "!(has(self.nodeNames) && has(self.nodeSelector))"
+            }
+          ]
+        },
+        "modelRegistry": {
+          "type": "object",
+          "properties": {
+            "managementState": {
+              "description": "ManagementState defines whether a component is actively managed by the\noperator or scheduled for removal.",
+              "type": "string",
+              "enum": [
+                "Managed",
+                "Removed"
+              ]
+            }
+          }
+        },
+        "nim": {
+          "type": "object",
+          "properties": {
+            "airGapped": {
+              "type": "boolean"
+            },
+            "managementState": {
+              "description": "ManagementState defines whether a component is actively managed by the\noperator or scheduled for removal.",
+              "type": "string",
+              "enum": [
+                "Managed",
+                "Removed"
+              ]
+            }
+          }
+        },
+        "oauthProxy": {
+          "description": "OAuthProxyConfig configures the OAuth proxy sidecar container in the\ninferenceservice-config ConfigMap.",
+          "type": "object",
+          "properties": {
+            "resources": {
+              "description": "OAuthProxyResourceRequirements describes the resource requirements\nfor the OAuth proxy sidecar container.",
+              "type": "object",
+              "properties": {
+                "limits": {
+                  "description": "ResourceList is a set of (resource name, quantity) pairs.",
+                  "type": "object",
+                  "additionalProperties": {
+                    "pattern": "^(\\+|-)?(([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\\+|-)?(([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))))?$",
+                    "x-kubernetes-int-or-string": true
+                  }
+                },
+                "requests": {
+                  "description": "ResourceList is a set of (resource name, quantity) pairs.",
+                  "type": "object",
+                  "additionalProperties": {
+                    "pattern": "^(\\+|-)?(([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\\+|-)?(([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))))?$",
+                    "x-kubernetes-int-or-string": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "rawDeploymentServiceConfig": {
+          "type": "string",
+          "enum": [
+            "Headless",
+            "Headed"
+          ]
+        },
+        "wva": {
+          "type": "object",
+          "properties": {
+            "managementState": {
+              "description": "ManagementState defines whether a component is actively managed by the\noperator or scheduled for removal.",
+              "type": "string",
+              "enum": [
+                "Managed",
+                "Removed"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "status": {
+      "type": "object",
+      "properties": {
+        "conditions": {
+          "description": "Conditions is the set of condition observations for this module.",
+          "type": "array",
+          "items": {
+            "description": "Condition represents an observation of a module's state at a point in time.\nModule controllers set conditions to communicate health signals to the\norchestrator and to human operators.",
+            "type": "object",
+            "required": [
+              "status",
+              "type"
+            ],
+            "properties": {
+              "lastHeartbeatTime": {
+                "description": "Deprecated: LastHeartbeatTime is present only for backward\ncompatibility with existing CRDs. New code should not set this field.",
+                "type": "string",
+                "format": "date-time"
+              },
+              "lastTransitionTime": {
+                "description": "lastTransitionTime is the last time the condition transitioned from\none status to another.",
+                "type": "string",
+                "format": "date-time"
+              },
+              "message": {
+                "description": "message is a human-readable message indicating details about the\ntransition.",
+                "type": "string"
+              },
+              "observedGeneration": {
+                "description": "observedGeneration represents the .metadata.generation that the\ncondition was set based upon. If this does not match the resource's\ncurrent generation, the condition is likely stale.",
+                "type": "integer",
+                "format": "int64",
+                "minimum": 0
+              },
+              "reason": {
+                "description": "reason contains a programmatic identifier indicating the reason for\nthe condition's last transition. The value should be a CamelCase\nstring.",
+                "type": "string"
+              },
+              "severity": {
+                "description": "Severity indicates whether this condition represents an error or is\npurely informational. Empty string (default) indicates error severity.",
+                "type": "string"
+              },
+              "status": {
+                "description": "status of the condition, one of True, False, Unknown.",
+                "type": "string",
+                "enum": [
+                  "True",
+                  "False",
+                  "Unknown"
+                ]
+              },
+              "type": {
+                "description": "type of condition in CamelCase or in foo.example.com/CamelCase.",
+                "type": "string",
+                "maxLength": 316,
+                "pattern": "^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$"
+              }
+            }
+          },
+          "x-kubernetes-list-type": "atomic"
+        },
+        "observedGeneration": {
+          "description": "ObservedGeneration is the most recent .metadata.generation observed\nby the controller. It allows consumers to determine whether the\ncontroller has processed the latest spec changes.",
+          "type": "integer",
+          "format": "int64"
+        },
+        "phase": {
+          "description": "Phase is the top-level lifecycle phase of the module.",
+          "type": "string"
+        },
+        "releases": {
+          "description": "Releases is the list of deployed component releases.",
+          "type": "array",
+          "items": {
+            "description": "ComponentRelease describes a single software component's release metadata.",
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "description": "Name is the component name, used as the merge key in lists.",
+                "type": "string"
+              },
+              "repoUrl": {
+                "description": "RepoURL is the source repository URL for this component release.",
+                "type": "string"
+              },
+              "version": {
+                "description": "Version is the semantic version of the component.",
+                "type": "string"
+              }
+            }
+          },
+          "x-kubernetes-list-map-keys": [
+            "name"
+          ],
+          "x-kubernetes-list-type": "map"
+        }
+      }
+    }
+  },
+  "x-kubernetes-group-version-kind": [
+    {
+      "group": "components.platform.opendatahub.io",
+      "kind": "Kserve",
+      "version": "v1alpha1"
+    }
+  ],
+  "x-kubernetes-validations": [
+    {
+      "message": "Kserve name must be 'default-kserve'",
+      "rule": "self.metadata.name == 'default-kserve'"
+    }
+  ],
+  "$schema": "http://json-schema.org/schema#"
+}

@@ -1,0 +1,58 @@
+{
+  "type": "object",
+  "properties": {
+    "creationTime": {
+      "description": "Time is a wrapper around time.Time which supports correct marshaling to YAML and JSON.  Wrappers are provided for many of the factory methods that the time package offers.",
+      "type": "string",
+      "format": "date-time"
+    },
+    "name": {
+      "type": "string"
+    },
+    "volumes": {
+      "description": "Volumes lists volumes and their disk targets at backup time",
+      "type": "array",
+      "items": {
+        "description": "BackupVolumeInfo contains information about a volume included in a backup",
+        "type": "object",
+        "required": [
+          "volumeName",
+          "diskTarget"
+        ],
+        "properties": {
+          "dataEndpoint": {
+            "description": "DataEndpoint is the URL of the endpoint for read for pull mode",
+            "type": "string"
+          },
+          "diskTarget": {
+            "description": "DiskTarget is the disk target device name at backup time",
+            "type": "string",
+            "default": ""
+          },
+          "mapEndpoint": {
+            "description": "MapEndpoint is the URL of the endpoint for map for pull mode",
+            "type": "string"
+          },
+          "volumeName": {
+            "description": "VolumeName is the volume name from VMI spec",
+            "type": "string",
+            "default": ""
+          }
+        },
+        "additionalProperties": false
+      },
+      "x-kubernetes-list-type": "atomic"
+    },
+    "apiVersion": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string"
+    },
+    "metadata": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

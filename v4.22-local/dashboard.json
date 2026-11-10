@@ -1,0 +1,290 @@
+{
+  "description": "Dashboard is the Schema for the dashboards API.",
+  "type": "object",
+  "properties": {
+    "apiVersion": {
+      "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+      "type": "string"
+    },
+    "kind": {
+      "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+      "type": "string"
+    },
+    "metadata": {
+      "description": "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta"
+    },
+    "spec": {
+      "description": "DashboardSpec defines the desired state of the Dashboard module.",
+      "type": "object",
+      "properties": {
+        "components": {
+          "description": "Components is a snapshot of DSC component availability, projected by\nthe ODH Operator onto this CR.",
+          "type": "object",
+          "additionalProperties": {
+            "description": "ComponentAvailability represents a DSC component's availability state\nas projected by the orchestrator.",
+            "type": "object",
+            "required": [
+              "managementState"
+            ],
+            "properties": {
+              "managementState": {
+                "description": "ManagementState is the DSC component's management state.\n\"Managed\" or \"Unmanaged\" means the component is available;\n\"Removed\" means it is not.",
+                "type": "string",
+                "enum": [
+                  "Managed",
+                  "Unmanaged",
+                  "Removed"
+                ]
+              }
+            }
+          }
+        },
+        "deploymentMode": {
+          "description": "DeploymentMode controls how BFF modules are deployed.\nSidecar (default): modules run as containers in the main dashboard pod.\nStandalone: each module gets its own Deployment, Service, and RBAC.",
+          "type": "string",
+          "enum": [
+            "Sidecar",
+            "Standalone"
+          ]
+        },
+        "gateway": {
+          "description": "Gateway configures the ingress point for the dashboard.",
+          "type": "object",
+          "required": [
+            "domain"
+          ],
+          "properties": {
+            "domain": {
+              "type": "string",
+              "maxLength": 253,
+              "pattern": "^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\\.)+[a-zA-Z]{2,}$"
+            }
+          }
+        },
+        "managementState": {
+          "description": "ManagementState controls whether the operator actively manages the\ncomponent (Managed) or removes it (Removed).",
+          "type": "string",
+          "enum": [
+            "Managed",
+            "Removed"
+          ]
+        },
+        "modules": {
+          "description": "Modules contains per-module override configuration. Map keys are\nmodule names as defined in the controller's internal module registry.",
+          "type": "object",
+          "additionalProperties": {
+            "description": "ModuleOverride allows the orchestrator or admin to override the\nautomatic dependency-based module enablement decision.",
+            "type": "object",
+            "properties": {
+              "state": {
+                "description": "State overrides automatic module enablement.\nIf empty or omitted, the controller uses dependency resolution.",
+                "type": "string",
+                "enum": [
+                  "Enabled",
+                  "Disabled"
+                ]
+              }
+            }
+          }
+        },
+        "observability": {
+          "description": "Observability configures the observability stack integration.",
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "description": "Enabled controls whether the Perses proxy module is deployed.",
+              "type": "boolean"
+            },
+            "persesService": {
+              "description": "PersesService identifies the target Perses service to proxy to.\nRequired when Enabled is true.",
+              "type": "object",
+              "required": [
+                "name",
+                "namespace"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "namespace": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "port": {
+                  "type": "integer",
+                  "format": "int32",
+                  "maximum": 65535,
+                  "minimum": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "status": {
+      "description": "DashboardStatus defines the observed state of the Dashboard.",
+      "type": "object",
+      "properties": {
+        "conditions": {
+          "description": "Conditions is the set of condition observations for this module.",
+          "type": "array",
+          "items": {
+            "description": "Condition represents an observation of a module's state at a point in time.\nModule controllers set conditions to communicate health signals to the\norchestrator and to human operators.",
+            "type": "object",
+            "required": [
+              "lastTransitionTime",
+              "status",
+              "type"
+            ],
+            "properties": {
+              "lastTransitionTime": {
+                "description": "LastTransitionTime is the last time the condition transitioned from one\nstatus to another.",
+                "type": "string",
+                "format": "date-time"
+              },
+              "message": {
+                "description": "Message is a human-readable description providing details about the\ncondition's last transition.",
+                "type": "string"
+              },
+              "observedGeneration": {
+                "description": "ObservedGeneration is the .metadata.generation of the resource that\nthe condition was set based upon. If this does not match the resource's\ncurrent generation, the condition is likely stale.",
+                "type": "integer",
+                "format": "int64",
+                "minimum": 0
+              },
+              "reason": {
+                "description": "Reason is a programmatic, one-word CamelCase identifier for the\ncondition's last transition, suitable for machine consumption.",
+                "type": "string"
+              },
+              "severity": {
+                "description": "Severity indicates whether this condition represents an error or is\npurely informational. Empty string (default) indicates error severity.",
+                "type": "string"
+              },
+              "status": {
+                "description": "Status is the status of the condition (True, False, Unknown).",
+                "type": "string"
+              },
+              "type": {
+                "description": "Type is the condition type, e.g. ConditionTypeReady, ConditionTypeDegraded.",
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "x-kubernetes-list-type": "atomic"
+        },
+        "distribution": {
+          "description": "Distribution reports the product distribution identity.",
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "maxLength": 256
+            },
+            "version": {
+              "type": "string",
+              "maxLength": 256
+            }
+          }
+        },
+        "moduleStatuses": {
+          "description": "ModuleStatuses reports the deployment state of each module.",
+          "type": "object",
+          "additionalProperties": {
+            "description": "ModuleStatus reports the current state of a single module.",
+            "type": "object",
+            "required": [
+              "phase"
+            ],
+            "properties": {
+              "lastTransitionTime": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "message": {
+                "type": "string"
+              },
+              "phase": {
+                "description": "ModulePhase represents the deployment lifecycle of an individual module.",
+                "type": "string",
+                "enum": [
+                  "Deployed",
+                  "NotDeployed",
+                  "Degraded",
+                  "Disabled"
+                ]
+              },
+              "reason": {
+                "description": "Reason is a one-word CamelCase explanation for the current phase.",
+                "type": "string"
+              }
+            }
+          }
+        },
+        "observedGeneration": {
+          "description": "ObservedGeneration is the most recent .metadata.generation observed\nby the controller. It allows consumers to determine whether the\ncontroller has processed the latest spec changes.",
+          "type": "integer",
+          "format": "int64"
+        },
+        "phase": {
+          "description": "Phase is the top-level lifecycle phase of the module.",
+          "type": "string"
+        },
+        "releases": {
+          "description": "Releases is the list of deployed component releases.",
+          "type": "array",
+          "items": {
+            "description": "ComponentRelease describes a single software component's release metadata.",
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "description": "Name is the component name, used as the merge key in lists.",
+                "type": "string"
+              },
+              "repoUrl": {
+                "description": "RepoURL is the source repository URL for this component release.",
+                "type": "string"
+              },
+              "version": {
+                "description": "Version is the semantic version of the component.",
+                "type": "string"
+              }
+            }
+          },
+          "x-kubernetes-list-map-keys": [
+            "name"
+          ],
+          "x-kubernetes-list-type": "map"
+        },
+        "url": {
+          "description": "URL is the externally-reachable dashboard URL (last known good).\nThis value persists across transient route failures \u2014 consumers must\ncheck the Ready condition before relying on this endpoint.",
+          "type": "string"
+        }
+      }
+    }
+  },
+  "x-kubernetes-group-version-kind": [
+    {
+      "group": "components.platform.opendatahub.io",
+      "kind": "Dashboard",
+      "version": "v1alpha1"
+    }
+  ],
+  "x-kubernetes-validations": [
+    {
+      "message": "Dashboard name must be default-dashboard",
+      "rule": "self.metadata.name == 'default-dashboard'"
+    },
+    {
+      "message": "persesService must be specified when observability is enabled",
+      "rule": "!has(self.spec.observability) || !self.spec.observability.enabled || has(self.spec.observability.persesService)"
+    }
+  ],
+  "$schema": "http://json-schema.org/schema#"
+}
